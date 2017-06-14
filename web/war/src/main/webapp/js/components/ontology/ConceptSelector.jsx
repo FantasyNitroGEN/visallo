@@ -22,10 +22,11 @@ define([
             }),
             privileges: PropTypes.object.isRequired,
             concepts: PropTypes.array.isRequired,
-            conceptAncestors: PropTypes.object.isRequired
+            conceptAncestors: PropTypes.object.isRequired,
+            placeholder: PropTypes.string
         },
         getDefaultProps() {
-            return { creatable: true }
+            return { creatable: true, placeholder: i18n('concept.field.placeholder') }
         },
         render() {
             const {

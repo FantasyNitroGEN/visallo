@@ -49,6 +49,7 @@ define([
             this.attacher = attacher()
                 .node(this.node)
                 .params({
+                    placeholder: this.attr.defaultText,
                     autofocus: this.attr.focus === true
                 })
                 .behavior({

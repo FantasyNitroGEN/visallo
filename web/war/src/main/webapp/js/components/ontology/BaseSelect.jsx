@@ -197,16 +197,30 @@ define([
             );
         }
 
+        const iconStyles = option.domainGlyphIconHref ? { backgroundSize: 'auto 70%' } : {};
+
         return (
             <div className={className.join(' ')}
                 key={key}
                 style={{ ...style, paddingLeft: `${indent}px` }}
-                title={option.path}
+                title={`${option.path}${ option.displayNameSub ? `\n${option.displayNameSub}` : ''}`}
                 {...events}>
-            <div className="icon" style={{
-                backgroundImage: option.glyphIconHref ?
-                    `url(${option.glyphIconHref})` : null
-            }}></div>{option[labelKey]}</div>
+                {
+                    option.glyphIconHref ? (
+                        <div className="icon" style={{ ...iconStyles, backgroundImage: `url(${option.glyphIconHref})` }} />
+                    ) : option.domainGlyphIconHref ? (
+                        <div className="icon" style={{ ...iconStyles, backgroundImage: `url(${option.domainGlyphIconHref})` }} />
+                    ) : (
+                        <div className="icon" style={{ width: '6px', margin: '0' }} />
+                    )
+                }
+                {option[labelKey]}
+                {
+                    option.rangeGlyphIconHref ? (
+                        <div className="icon" style={{ ...iconStyles, marginLeft: '5px', backgroundImage: `url(${option.rangeGlyphIconHref})` }} />
+                    ) : null
+                }
+            </div>
         );
     }
 });

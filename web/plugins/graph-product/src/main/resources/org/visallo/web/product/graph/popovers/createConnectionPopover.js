@@ -57,6 +57,7 @@ define([
             this.on('rendered', this.positionDialog);
 
             RelationshipSelect.attachTo(this.popover.find('.relationships'), {
+                focus: true,
                 sourceConcept: this.attr.otherCyNode.data('conceptType'),
                 targetConcept: this.attr.cyNode.data('conceptType')
             });
@@ -72,7 +73,7 @@ define([
             var self = this,
                 button = this.select('connectButtonSelector');
 
-            button.text(i18n('popovers.connection.button.connect')).attr('disabled', true);
+            button.text(i18n('org.visallo.web.product.graph.connection.button.connect')).attr('disabled', true);
 
             this.popover.find('.relationships').trigger('limitParentConceptId', {
                     sourceConceptId: this.attr.otherCyNode.data('conceptType'),
@@ -191,7 +192,7 @@ define([
                     self.teardown();
                 })
                 .catch(function(error) {
-                    $target.text(i18n('popovers.connection.button.connect'))
+                    $target.text(i18n('org.visallo.web.product.graph.connection.button.connect'))
                         .removeAttr('disabled');
                     self.markFieldErrors(error);
                     self.positionDialog();

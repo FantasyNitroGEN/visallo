@@ -29,10 +29,11 @@ define([
             relationships: PropTypes.array.isRequired,
             sourceConcept: PropTypes.string,
             targetConcept: PropTypes.string,
-            concept: PropTypes.string
+            concept: PropTypes.string,
+            placeholder: PropTypes.string
         },
         getDefaultProps() {
-            return { creatable: true }
+            return { creatable: true, placeholder: i18n('relationship.field.placeholder') }
         },
         render() {
             const {
@@ -67,7 +68,7 @@ define([
                     createForm={'components/ontology/RelationshipForm'}
                     formProps={formProps}
                     options={options}
-                    creatable={creatable && Boolean(privileges.ONTOLOGY_ADD)}
+                    creatable={Boolean(privileges.ONTOLOGY_ADD)}
                     {...rest} />
             );
         }
@@ -78,6 +79,7 @@ define([
             return {
                 privileges: userSelectors.getPrivileges(state),
                 conceptDescendents: ontologySelectors.getConceptDescendents(state),
+                concepts: ontologySelectors.getConcepts(state),
                 relationships: ontologySelectors.getVisibleRelationships(state),
                 iriKeys: ontologySelectors.getRelationshipKeyIris(state),
                 ...props

@@ -11,46 +11,47 @@ define(['reselect'], function(reselect) {
             )) &&
             item.displayName;
     };
-    const _collectParents = concepts => concept => {
+    const _collectParents = (concepts, { parentKey, extraKeys = [], defaults = {} } = {}) => concept => {
         const collecting = {
-            color: null,
             path: [],
             pathIris: [],
             properties: [],
-            glyphIconHref: null,
-            glyphIconSelectedHref: null
+            ...(_.object(extraKeys.map(k => [k, null])))
         };
         _collect(concept);
         const {
             path,
             pathIris,
             properties,
-            glyphIconHref = 'img/glyphicons/glyphicons_194_circle_question_mark@2x.png',
             ...override } = collecting;
+        _.each(override, (v, k) => {
+            if (!v && defaults[k]) {
+                override[k] = defaults[k];
+            }
+        })
         const newConcept = {
             ...concept,
             path: '/' + path.reverse().join('/'),
             pathIris,
             properties: _.uniq(properties),
             depth: path.length - 1,
-            glyphIconHref,
             ...override
         };
         return newConcept;
 
         function _collect(concept) {
-            collecting.color = collecting.color || concept.color;
-            collecting.glyphIconHref = collecting.glyphIconHref || concept.glyphIconHref;
-            collecting.glyphIconSelectedHref = collecting.glyphIconSelectedHref || concept.glyphIconSelectedHref;
+            extraKeys.forEach(k => {
+                collecting[k] = collecting[k] || concept[k];
+            })
             if (_visible(concept)) {
                 collecting.path.push(concept.displayName)
                 collecting.pathIris.push(concept.title)
             }
             collecting.properties = collecting.properties.concat(concept.properties);
 
-            if (concept.parentConcept) {
-                const parentConcept = concepts[concept.parentConcept];
-                _collect(parentConcept);
+            if (concept[parentKey]) {
+                const parent = concepts[concept[parentKey]];
+                _collect(parent);
             }
         }
     }
@@ -61,15 +62,40 @@ define(['reselect'], function(reselect) {
 
     const getConcepts = createSelector([getWorkspace, getOntologyRoot], (workspaceId, ontology) => {
         const concepts = ontology[workspaceId].concepts;
-        return _.mapObject(concepts, _collectParents(concepts))
+        const fn = _collectParents(concepts, {
+            parentKey: 'parentConcept',
+            extraKeys: ['color', 'glyphIconHref', 'glyphIconSelectedHref'],
+            defaults: { glyphIconHref: 'img/glyphicons/glyphicons_194_circle_question_mark@2x.png' }
+        });
+        return _.mapObject(concepts, c => {
+            const newC = fn(c);
+            console.log(newC)
+            return { ...newC, displayNameSub: '' };
+        });
     })
 
     const getProperties = createSelector([getWorkspace, getOntologyRoot], (workspaceId, ontology) => {
         return ontology[workspaceId].properties;
     })
 
-    const getRelationships = createSelector([getWorkspace, getOntologyRoot], (workspaceId, ontology) => {
-        return ontology[workspaceId].relationships;
+    const getRelationships = createSelector([getWorkspace, getOntologyRoot, getConcepts], (workspaceId, ontology, concepts) => {
+        const relationships = ontology[workspaceId].relationships;
+        const mostTopLevelGlyphIconForIris = iris => {
+            const c = _.first(_.sortBy(iris.map(iri => concepts[iri]), 'depth'));
+            return c && c.glyphIconHref || null;
+        };
+        const fn = _collectParents(relationships, { parentKey: 'parentIri' });
+        return _.mapObject(relationships, r => {
+            const newR = fn(r);
+            const domainGlyphIconHref = mostTopLevelGlyphIconForIris(newR.domainConceptIris);
+            const rangeGlyphIconHref = mostTopLevelGlyphIconForIris(newR.rangeConceptIris);
+            const domains = newR.domainConceptIris.map(iri => concepts[iri].displayName)
+            const ranges = newR.rangeConceptIris.map(iri => concepts[iri].displayName)
+            const displayNameSub = domains.length === 1 ? ranges.map(r => domains[0] + '→' + r).join('\n') :
+                ranges.length === 1 ? domains.map(d => d + '→' + ranges[0]).join('\n') :
+                `(${domains}) → (${ranges})`
+            return { ...newR, domainGlyphIconHref, rangeGlyphIconHref, displayNameSub };
+        });
     })
 
     const getVisibleRelationships = createSelector([getRelationships, getConcepts], (relationships, concepts) => {
@@ -78,7 +104,7 @@ define(['reselect'], function(reselect) {
         return _.chain(relationships)
             .map()
             .filter(r => _visible(r) && relationshipConceptsVisible(r))
-            .sortBy('displayName')
+            .sortBy('path')
             .value()
     })
 

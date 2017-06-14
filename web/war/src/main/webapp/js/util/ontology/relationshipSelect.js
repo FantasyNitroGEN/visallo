@@ -28,19 +28,23 @@ define([
         })
 
         this.after('initialize', function() {
+            if (this.attr.maxItems) console.warn('maxItems is no longer supported');
             var self = this;
             this.on('limitParentConceptId', function(event, data) {
                 const { conceptId: concept, sourceConceptId: sourceConcept, targetConceptId: targetConcept } = data;
-                self.attacher.params({ concept, sourceConcept, targetConcept });
-                self.attacher.attach()
+                self.attacher.params({ concept, sourceConcept, targetConcept }).attach();
             })
             this.on('selectRelationshipId', function(event, data) {
-                self.attacher.params({ ...self.attacher._params, value: '' }).attach()
+                const relationshipId = data && data.relationshipId || '';
+                self.attacher.params({ ...self.attacher._params, value: relationshipId }).attach()
             })
 
             this.attacher = attacher()
                 .node(this.node)
                 .params({
+                    placeholder: this.attr.defaultText,
+                    autofocus: this.attr.focus === true,
+                    concept: this.attr.limitParentConceptId,
                     sourceConcept: this.attr.sourceConcept,
                     targetConcept: this.attr.targetConcept
                 })
