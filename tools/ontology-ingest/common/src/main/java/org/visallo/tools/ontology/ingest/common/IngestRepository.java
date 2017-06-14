@@ -335,7 +335,7 @@ public class IngestRepository {
     }
 
     private Authorizations getAuthorizations(IngestOptions ingestOptions) {
-        return authorizationRepository.getGraphAuthorizations(ingestOptions.getIngestUser());
+        return authorizationRepository.getGraphAuthorizations(ingestOptions.getIngestUser(), ingestOptions.getAdditionalAuthorizations());
     }
 
     public static class ValidationResult {

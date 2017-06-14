@@ -20,10 +20,15 @@ public abstract class EntityBuilder {
     private String visibility;
 
     public EntityBuilder(String id) {
+        this(id, null);
+    }
+
+    public EntityBuilder(String id, String visibility) {
         assert id != null;
         assert id.trim().length() > 0;
 
         this.id = id;
+        this.visibility = visibility;
     }
 
     public String getId() {
@@ -36,19 +41,43 @@ public abstract class EntityBuilder {
         return propertyAdditions;
     }
 
+    /**
+     * @deprecated replaced by {@link #setMetadata(Map<String, Object>)} to get rid of confusion of casting return value back to subclass
+     */
+    @Deprecated
     public EntityBuilder withMetadata(Map<String, Object> metdata) {
-        this.metadata = metdata;
+        this.setMetadata(metdata);
         return this;
     }
 
+    /**
+     * @deprecated replaced by {@link #setTimestamp(Long)} to get rid of confusion of casting return value back to subclass
+     */
+    @Deprecated
     public EntityBuilder withTimestamp(Long timestamp) {
-        this.timestamp = timestamp;
+        this.setTimestamp(timestamp);
         return this;
     }
 
+    /**
+     * @deprecated replaced by {@link #setVisibility(String)}  to get rid of confusion of casting return value back to subclass
+     */
+    @Deprecated
     public EntityBuilder withVisibility(String visibility) {
-        this.visibility = visibility;
+        this.setVisibility(visibility);
         return this;
+    }
+
+    public void setVisibility(String visibility) {
+        this.visibility = visibility;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
     }
 
     public Map<String, Object> getMetadata() {

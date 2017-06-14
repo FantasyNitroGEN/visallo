@@ -2,36 +2,26 @@ package org.visallo.vertexium.model.ontology;
 
 import com.beust.jcommander.internal.Lists;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import org.apache.commons.compress.utils.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.semanticweb.owlapi.model.IRI;
 import org.vertexium.Authorizations;
-import org.vertexium.Graph;
-import org.vertexium.inmemory.InMemoryAuthorizations;
-import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.config.Configuration;
-import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloAccessDeniedException;
-import org.visallo.core.model.graph.GraphRepository;
-import org.visallo.core.model.lock.NonLockingLockRepository;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.Concept;
-import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
+import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
-import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.user.*;
-import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.security.DirectVisibilityTranslator;
-import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
+import org.visallo.core.util.VisalloInMemoryTestBase;
 import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.PropertyType;
-import org.visallo.web.clientapi.model.UserType;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,10 +31,9 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.when;
+import static org.visallo.core.model.user.UserRepository.USER_CONCEPT_IRI;
 
-@RunWith(MockitoJUnitRunner.class)
-public class VertexiumOntologyRepositoryTest {
+public class VertexiumOntologyRepositoryTest extends VisalloInMemoryTestBase {
     private static final String TEST_OWL = "test.owl";
     private static final String TEST_IRI = "http://visallo.org/test";
 
@@ -64,86 +53,15 @@ public class VertexiumOntologyRepositoryTest {
     private VertexiumOntologyRepository ontologyRepository;
     private Authorizations authorizations;
 
-    private User systemUser = new SystemUser();
-    private User user = new SystemUser() {
-        @Override
-        public String getUserId() { return "junit-user"; }
-
-        @Override
-        public UserType getUserType() { return UserType.USER; }
-    };
-    private Set<String> userPrivileges = new HashSet<>();
-
     private String workspaceId = "junit-workspace";
-
-    @Mock
-    private WorkQueueRepository workQueueRepository;
-
-    @Mock
-    private UserRepository userRepository;
+    private User systemUser = new SystemUser();
+    private User user;
 
     @Before
-    public void setup() throws Exception {
-        Map<String, String> configMap = Collections.singletonMap("org.visallo.core.model.user.UserPropertyAuthorizationRepository.defaultAuthorizations", "");
-        Configuration configuration = new HashMapConfigurationLoader(configMap).createConfiguration();
-
-        when(userRepository.getSystemUser()).thenReturn(systemUser);
-
-        Graph graph = InMemoryGraph.create();
-        VisibilityTranslator visibilityTranslator = new DirectVisibilityTranslator();
-        GraphAuthorizationRepository graphAuthorizationRepository = new InMemoryGraphAuthorizationRepository();
-        TermMentionRepository termMentionRepository = new TermMentionRepository(graph, graphAuthorizationRepository);
-        GraphRepository graphRepository = new GraphRepository(graph, visibilityTranslator, termMentionRepository, workQueueRepository);
-        PrivilegeRepository privilegeRepository = new PrivilegeRepositoryBase(configuration) {
-            @Override
-            public void updateUser(User user, AuthorizationContext authorizationContext) { /* Nothing to do here */ }
-
-            @Override
-            protected Iterable<PrivilegesProvider> getPrivilegesProviders(Configuration configuration) { return Collections.emptyList(); }
-
-            @Override
-            public Set<String> getPrivileges(User privUser) {
-                if (privUser == user) {
-                    return userPrivileges;
-                }
-                throw new UnsupportedOperationException("This test method is only intended for the non-system user");
-            }
-        };
-        AuthorizationRepository authorizationRepository = new AuthorizationRepositoryBase(graph) {
-            @Override
-            public void updateUser(User user, AuthorizationContext authorizationContext) { /* Nothing to do here */ }
-
-            @Override
-            public Set<String> getAuthorizations(User user) { return new HashSet<>(); }
-        };
-
-        ontologyRepository = new VertexiumOntologyRepository(
-                graph,
-                graphRepository,
-                visibilityTranslator,
-                configuration,
-                graphAuthorizationRepository,
-                new NonLockingLockRepository()
-        ) {
-            @Override
-            public void loadOntologies(Configuration config, Authorizations authorizations) throws Exception {
-                Concept rootConcept = getOrCreateConcept(null, ROOT_CONCEPT_IRI, "root", null, systemUser, null);
-                getOrCreateConcept(rootConcept, ENTITY_CONCEPT_IRI, "thing", null, systemUser, null);
-                clearCache();
-            }
-
-            @Override
-            protected PrivilegeRepository getPrivilegeRepository() {
-                return privilegeRepository;
-            }
-
-            @Override
-            protected AuthorizationRepository getAuthorizationRepository() {
-                return authorizationRepository;
-            }
-        };
-
-        authorizations = new InMemoryAuthorizations();
+    public void before() {
+        super.before();
+        authorizations = getGraph().createAuthorizations();
+        user = getUserRepository().findOrAddUser("junit", "Junit", "junit@visallo.com", "password");
     }
 
     @Test
@@ -151,7 +69,7 @@ public class VertexiumOntologyRepositoryTest {
         loadTestOwlFile();
         File changedOwl = new File(VertexiumOntologyRepositoryTest.class.getResource(TEST_CHANGED_OWL).toURI());
 
-        ontologyRepository.importFile(changedOwl, IRI.create(TEST_IRI), authorizations);
+        getOntologyRepository().importFile(changedOwl, IRI.create(TEST_IRI), authorizations);
 
         validateChangedOwlRelationships();
         validateChangedOwlConcepts();
@@ -161,25 +79,28 @@ public class VertexiumOntologyRepositoryTest {
     @Test
     public void testGettingParentConceptReturnsParentProperties() throws Exception {
         loadHierarchyOwlFile();
-        Concept concept = ontologyRepository.getConceptByIRI(TEST_HIERARCHY_IRI + "#person", user, workspaceId);
-        Concept parentConcept = ontologyRepository.getParentConcept(concept, null, null);
+        Concept concept = getOntologyRepository().getConceptByIRI(TEST_HIERARCHY_IRI + "#person");
+        Concept parentConcept = getOntologyRepository().getParentConcept(concept);
         assertEquals(1, parentConcept.getProperties().size());
     }
+
 
     @Test
     public void dependenciesBetweenOntologyFilesShouldNotChangeParentProperties() throws Exception {
         loadTestOwlFile();
-
         File changedOwl = new File(VertexiumOntologyRepositoryTest.class.getResource(TEST01_OWL).toURI());
 
-        ontologyRepository.importFile(changedOwl, IRI.create(TEST01_IRI), authorizations);
+        getOntologyRepository().importFile(changedOwl, IRI.create(TEST01_IRI), authorizations);
         validateTestOwlRelationship();
         validateTestOwlConcepts(1, 3);
         validateTestOwlProperties();
 
-        OntologyProperty aliasProperty = ontologyRepository.getPropertyByIRI(TEST01_IRI + "#alias", user, workspaceId);
-        Concept person = ontologyRepository.getConceptByIRI(TEST_IRI + "#person", user, workspaceId);
-        assertTrue(person.getProperties().stream().anyMatch(p -> p.getIri().equals(aliasProperty.getIri())));
+        OntologyProperty aliasProperty = getOntologyRepository().getPropertyByIRI(TEST01_IRI + "#alias");
+        Concept person = getOntologyRepository().getConceptByIRI(TEST_IRI + "#person");
+        assertTrue(person.getProperties()
+                .stream()
+                .anyMatch(p -> p.getIri().equals(aliasProperty.getIri()))
+        );
     }
 
     @Test
@@ -265,7 +186,7 @@ public class VertexiumOntologyRepositoryTest {
 
     @Test
     public void creatingSandboxedOntologyConcepts() {
-        userPrivileges.add(Privilege.ONTOLOGY_ADD);
+        setPrivileges(user, Collections.singleton(Privilege.ONTOLOGY_ADD));
 
         Concept thing = ontologyRepository.getEntityConcept(user, workspaceId);
         ontologyRepository.getOrCreateConcept(thing, SANDBOX_IRI, SANDBOX_DISPLAY_NAME, null, user, workspaceId);
@@ -280,7 +201,7 @@ public class VertexiumOntologyRepositoryTest {
 
     @Test(expected = VisalloAccessDeniedException.class)
     public void publishingConceptsWithoutPublishPrivilege() {
-        userPrivileges.add(Privilege.ONTOLOGY_ADD);
+        setPrivileges(user, Collections.singleton(Privilege.ONTOLOGY_ADD));
 
         Concept thing = ontologyRepository.getEntityConcept(user, workspaceId);
         Concept sandboxedConcept = ontologyRepository.getOrCreateConcept(thing, SANDBOX_IRI, SANDBOX_DISPLAY_NAME, null, user, workspaceId);
@@ -291,8 +212,7 @@ public class VertexiumOntologyRepositoryTest {
 
     @Test
     public void publishingConcepts() {
-        userPrivileges.add(Privilege.ONTOLOGY_ADD);
-        userPrivileges.add(Privilege.ONTOLOGY_PUBLISH);
+        setPrivileges(user, Sets.newHashSet(Privilege.ONTOLOGY_ADD, Privilege.ONTOLOGY_PUBLISH));
 
         Concept thing = ontologyRepository.getEntityConcept(user, workspaceId);
         Concept sandboxedConcept = ontologyRepository.getOrCreateConcept(thing, SANDBOX_IRI, SANDBOX_DISPLAY_NAME, null, user, workspaceId);
@@ -336,7 +256,7 @@ public class VertexiumOntologyRepositoryTest {
 
     @Test
     public void creatingSandboxedOntologyRelationships() {
-        userPrivileges.add(Privilege.ONTOLOGY_ADD);
+        setPrivileges(user, Collections.singleton(Privilege.ONTOLOGY_ADD));
 
         List<Concept> thing = Collections.singletonList(ontologyRepository.getEntityConcept(user, workspaceId));
         ontologyRepository.getOrCreateRelationshipType(null, thing, thing, SANDBOX_IRI, null, true, user, workspaceId);
@@ -350,13 +270,13 @@ public class VertexiumOntologyRepositoryTest {
     }
 
     private void validateTestOwlRelationship() {
-        Relationship relationship = ontologyRepository.getRelationshipByIRI(TEST_IRI + "#personKnowsPerson", user, workspaceId);
+        Relationship relationship = getOntologyRepository().getRelationshipByIRI(TEST_IRI + "#personKnowsPerson");
         assertEquals("Knows", relationship.getDisplayName());
         assertEquals("prop('http://visallo.org/test#firstMet') || ''", relationship.getTimeFormula());
         assertTrue(relationship.getRangeConceptIRIs().contains("http://visallo.org/test#person"));
         assertTrue(relationship.getDomainConceptIRIs().contains("http://visallo.org/test#person"));
 
-        relationship = ontologyRepository.getRelationshipByIRI(TEST_IRI + "#personIsRelatedToPerson", user, workspaceId);
+        relationship = getOntologyRepository().getRelationshipByIRI(TEST_IRI + "#personIsRelatedToPerson");
         assertEquals("Is Related To", relationship.getDisplayName());
         String[] intents = relationship.getIntents();
         assertTrue(intents.length == 1);
@@ -366,7 +286,7 @@ public class VertexiumOntologyRepositoryTest {
     }
 
     private void validateTestOwlProperties() {
-        OntologyProperty nameProperty = ontologyRepository.getPropertyByIRI(TEST_IRI + "#name", user, workspaceId);
+        OntologyProperty nameProperty = getOntologyRepository().getPropertyByIRI(TEST_IRI + "#name");
         assertEquals("Name", nameProperty.getDisplayName());
         assertEquals(PropertyType.STRING, nameProperty.getDataType());
         assertEquals("_.compact([\n" +
@@ -396,22 +316,25 @@ public class VertexiumOntologyRepositoryTest {
         assertEquals("test 1", possibleValues.get("T1"));
         assertEquals("test 2", possibleValues.get("T2"));
 
-        Concept person = ontologyRepository.getConceptByIRI(TEST_IRI + "#person", user, workspaceId);
+        Concept person = getOntologyRepository().getConceptByIRI(TEST_IRI + "#person");
         assertTrue(person.getProperties()
                 .stream()
                 .anyMatch(p -> p.getIri().equals(nameProperty.getIri()))
         );
 
-        OntologyProperty firstMetProperty = ontologyRepository.getPropertyByIRI(TEST_IRI + "#firstMet", user, workspaceId);
+        OntologyProperty firstMetProperty = getOntologyRepository().getPropertyByIRI(TEST_IRI + "#firstMet");
         assertEquals("First Met", firstMetProperty.getDisplayName());
         assertEquals(PropertyType.DATE, firstMetProperty.getDataType());
 
-        Relationship relationship = ontologyRepository.getRelationshipByIRI(TEST_IRI + "#personKnowsPerson", user, workspaceId);
-        assertTrue(relationship.getProperties().stream().anyMatch(p -> p.getIri().equals(firstMetProperty.getIri())));
+        Relationship relationship = getOntologyRepository().getRelationshipByIRI(TEST_IRI + "#personKnowsPerson");
+        assertTrue(relationship.getProperties()
+                .stream()
+                .anyMatch(p -> p.getIri().equals(firstMetProperty.getIri()))
+        );
     }
 
     private void validateTestOwlConcepts(int expectedIntentSize, int expectedIriSize) throws IOException {
-        Concept contact = ontologyRepository.getConceptByIRI(TEST_IRI + "#contact", user, workspaceId);
+        Concept contact = getOntologyRepository().getConceptByIRI(TEST_IRI + "#contact");
         assertEquals("Contact", contact.getDisplayName());
         assertEquals("rgb(149, 138, 218)", contact.getColor());
         assertEquals("test", contact.getDisplayType());
@@ -419,7 +342,7 @@ public class VertexiumOntologyRepositoryTest {
         assertEquals(expectedIntentSize, intents.size());
         assertTrue(intents.contains("face"));
 
-        Concept person = ontologyRepository.getConceptByIRI(TEST_IRI + "#person", user, workspaceId);
+        Concept person = getOntologyRepository().getConceptByIRI(TEST_IRI + "#person");
         assertEquals("Person", person.getDisplayName());
         intents = Arrays.asList(person.getIntents());
         assertEquals(expectedIntentSize, intents.size());
@@ -431,7 +354,7 @@ public class VertexiumOntologyRepositoryTest {
         assertArrayEquals(bytes, person.getGlyphIcon());
         assertEquals("rgb(28, 137, 28)", person.getColor());
 
-        Set<Concept> conceptAndAllChildren = ontologyRepository.getConceptAndAllChildren(contact, user, workspaceId);
+        Set<Concept> conceptAndAllChildren = getOntologyRepository().getConceptAndAllChildren(contact);
         List<String> iris = Lists.newArrayList();
         conceptAndAllChildren.stream()
                 .forEach(c -> iris.add(c.getIRI()));
@@ -441,7 +364,7 @@ public class VertexiumOntologyRepositoryTest {
     }
 
     private void validateChangedOwlRelationships() throws IOException {
-        Relationship relationship = ontologyRepository.getRelationshipByIRI(TEST_IRI + "#personKnowsPerson", user, workspaceId);
+        Relationship relationship = getOntologyRepository().getRelationshipByIRI(TEST_IRI + "#personKnowsPerson");
         assertEquals("Person Knows Person", relationship.getDisplayName());
         assertNull(relationship.getTimeFormula());
         assertFalse(relationship.getRangeConceptIRIs().contains("http://visallo.org/test#person2"));
@@ -450,8 +373,8 @@ public class VertexiumOntologyRepositoryTest {
     }
 
     private void validateChangedOwlConcepts() throws IOException {
-        Concept contact = ontologyRepository.getConceptByIRI(TEST_IRI + "#contact", user, workspaceId);
-        Concept person = ontologyRepository.getConceptByIRI(TEST_IRI + "#person", user, workspaceId);
+        Concept contact = getOntologyRepository().getConceptByIRI(TEST_IRI + "#contact");
+        Concept person = getOntologyRepository().getConceptByIRI(TEST_IRI + "#person");
         assertEquals("Person", person.getDisplayName());
         List<String> intents = Arrays.asList(person.getIntents());
         assertEquals(1, intents.size());
@@ -464,16 +387,17 @@ public class VertexiumOntologyRepositoryTest {
         assertNull(person.getGlyphIcon());
         assertEquals("rgb(28, 137, 28)", person.getColor());
 
-        Set<Concept> conceptAndAllChildren = ontologyRepository.getConceptAndAllChildren(contact, user, workspaceId);
+        Set<Concept> conceptAndAllChildren = getOntologyRepository().getConceptAndAllChildren(contact);
         List<String> iris = Lists.newArrayList();
-        conceptAndAllChildren.stream().forEach(c -> iris.add(c.getIRI()));
+        conceptAndAllChildren.stream()
+                .forEach(c -> iris.add(c.getIRI()));
         assertEquals(2, iris.size());
         assertTrue(iris.contains(contact.getIRI()));
         assertTrue(iris.contains(person.getIRI()));
     }
 
     private void validateChangedOwlProperties() throws IOException {
-        OntologyProperty nameProperty = ontologyRepository.getPropertyByIRI(TEST_IRI + "#name", user, workspaceId);
+        OntologyProperty nameProperty = getOntologyRepository().getPropertyByIRI(TEST_IRI + "#name");
         assertEquals("http://visallo.org/test#name", nameProperty.getDisplayName());
         assertEquals(PropertyType.STRING, nameProperty.getDataType());
         assertEquals("_.compact([\n" +
@@ -500,11 +424,11 @@ public class VertexiumOntologyRepositoryTest {
         Map<String, String> possibleValues = nameProperty.getPossibleValues();
         assertNull(possibleValues);
 
-        OntologyProperty firstMetProperty = ontologyRepository.getPropertyByIRI(TEST_IRI + "#firstMet", user, workspaceId);
+        OntologyProperty firstMetProperty = getOntologyRepository().getPropertyByIRI(TEST_IRI + "#firstMet");
         assertEquals("First Met", firstMetProperty.getDisplayName());
         assertEquals(PropertyType.DATE, firstMetProperty.getDataType());
 
-        Relationship relationship = ontologyRepository.getRelationshipByIRI(TEST_IRI + "#personKnowsPerson", user, workspaceId);
+        Relationship relationship = getOntologyRepository().getRelationshipByIRI(TEST_IRI + "#personKnowsPerson");
         assertTrue(relationship.getProperties()
                 .stream()
                 .anyMatch(p -> p.getIri().equals(firstMetProperty.getIri()))
@@ -512,9 +436,7 @@ public class VertexiumOntologyRepositoryTest {
     }
 
     private void loadTestOwlFile() throws Exception {
-        File testOwl = new File(VertexiumOntologyRepositoryTest.class.getResource(TEST_OWL).toURI());
-        ontologyRepository.importFile(testOwl, IRI.create(TEST_IRI), new InMemoryAuthorizations());
-
+        createTestOntologyRepository(TEST_OWL, TEST_IRI);
         validateTestOwlRelationship();
         validateTestOwlConcepts(1, 2);
         validateTestOwlProperties();
@@ -522,8 +444,52 @@ public class VertexiumOntologyRepositoryTest {
 
 
     private void loadHierarchyOwlFile() throws Exception {
-        File testOwl = new File(VertexiumOntologyRepositoryTest.class.getResource(TEST_HIERARCHY_OWL).toURI());
-        ontologyRepository.importFile(testOwl, IRI.create(TEST_HIERARCHY_IRI), new InMemoryAuthorizations());
+        createTestOntologyRepository(TEST_HIERARCHY_OWL, TEST_HIERARCHY_IRI);
+    }
+
+    private VertexiumOntologyRepository createTestOntologyRepository(String owlFileResourcePath, String iri) throws Exception {
+        File testOwl = new File(VertexiumOntologyRepositoryTest.class.getResource(owlFileResourcePath).toURI());
+        getOntologyRepository().importFile(testOwl, IRI.create(iri), authorizations);
+
+        return ontologyRepository;
+    }
+
+    @Override
+    protected OntologyRepository getOntologyRepository() {
+        if (ontologyRepository != null) {
+            return ontologyRepository;
+        }
+        try {
+            ontologyRepository = new VertexiumOntologyRepository(
+                    getGraph(),
+                    getGraphRepository(),
+                    getVisibilityTranslator(),
+                    getConfiguration(),
+                    getGraphAuthorizationRepository(),
+                    getLockRepository()
+            ) {
+                @Override
+                public void loadOntologies(Configuration config, Authorizations authorizations) throws Exception {
+                    Concept rootConcept = getOrCreateConcept(null, ROOT_CONCEPT_IRI, "root", null, systemUser, null);
+                    getOrCreateConcept(rootConcept, ENTITY_CONCEPT_IRI, "thing", null, systemUser, null);
+                    getOrCreateConcept(null, USER_CONCEPT_IRI, "visalloUser", null, false, systemUser, null);
+                    clearCache();
+                }
+
+                @Override
+                protected AuthorizationRepository getAuthorizationRepository() {
+                    return VertexiumOntologyRepositoryTest.this.getAuthorizationRepository();
+                }
+
+                @Override
+                protected PrivilegeRepository getPrivilegeRepository() {
+                    return VertexiumOntologyRepositoryTest.this.getPrivilegeRepository();
+                }
+            };
+        } catch (Exception ex) {
+            throw new VisalloException("Could not create ontology repository", ex);
+        }
+        return ontologyRepository;
     }
 }
 
