@@ -140,6 +140,7 @@ public abstract class OntologyProperty {
             result.setDependentPropertyIris(getDependentPropertyIris());
             result.setDeleteable(getDeleteable());
             result.setUpdateable(getUpdateable());
+            result.setSandboxStatus(getSandboxStatus());
             if (getPossibleValues() != null) {
                 result.getPossibleValues().putAll(getPossibleValues());
             }

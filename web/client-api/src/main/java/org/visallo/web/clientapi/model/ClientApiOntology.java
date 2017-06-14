@@ -276,6 +276,7 @@ public class ClientApiOntology implements ClientApiObject {
         private boolean updateable;
         private List<String> intents = new ArrayList<String>();
         private List<String> textIndexHints = new ArrayList<String>();
+        private SandboxStatus sandboxStatus;
 
         public String getTitle() {
             return title;
@@ -412,6 +413,14 @@ public class ClientApiOntology implements ClientApiObject {
         public List<String> getTextIndexHints() {
             return textIndexHints;
         }
+
+        public SandboxStatus getSandboxStatus() {
+            return sandboxStatus;
+        }
+
+        public void setSandboxStatus(SandboxStatus sandboxStatus) {
+            this.sandboxStatus = sandboxStatus;
+        }
     }
 
     public static class ExtendedDataTableProperty extends Property {
@@ -469,6 +478,7 @@ public class ClientApiOntology implements ClientApiObject {
         private List<InverseOf> inverseOfs = new ArrayList<InverseOf>();
         private List<String> intents = new ArrayList<String>();
         private List<String> properties = new ArrayList<String>();
+        private SandboxStatus sandboxStatus;
 
         public String getTitle() {
             return title;
@@ -574,6 +584,14 @@ public class ClientApiOntology implements ClientApiObject {
         @JsonInclude(JsonInclude.Include.NON_EMPTY)
         public List<String> getIntents() {
             return intents;
+        }
+
+        public SandboxStatus getSandboxStatus() {
+            return sandboxStatus;
+        }
+
+        public void setSandboxStatus(SandboxStatus sandboxStatus) {
+            this.sandboxStatus = sandboxStatus;
         }
 
         public static class InverseOf {

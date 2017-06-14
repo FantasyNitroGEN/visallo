@@ -111,6 +111,7 @@ public abstract class Relationship implements OntologyElement, HasOntologyProper
             if (getIntents() != null) {
                 result.getIntents().addAll(Arrays.asList(getIntents()));
             }
+            result.setSandboxStatus(getSandboxStatus());
 
             Iterable<String> inverseOfIRIs = getInverseOfIRIs();
             for (String inverseOfIRI : inverseOfIRIs) {
