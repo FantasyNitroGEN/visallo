@@ -169,11 +169,11 @@ define(['updeep'], function(u) {
     function updateUnauthorizedElements(state, {workspaceId, vertices, edges}) {
         const updateProduct = (product) => {
             if (product.extendedData) {
-                const { vertices: prevVertices, edges: prevEdges } = product.extendedData;
-                const transformElements = (prevElements, idKey, updateElements) => {
-                    return _.mapObject(prevElements, (element) => {
-                        const { id, unauthorized, ...rest } = element;
-                        const update = updateElements.find((e) => e[idKey] === id);
+                const { vertices: productVertices, edges: productEdges } = product.extendedData;
+                const transformElements = (productElements, idKey, updateElements) => {
+                    return _.mapObject(productElements, (element) => {
+                        const { [idKey]: id, unauthorized, ...rest } = element;
+                        const update = updateElements.find((e) => e.id === id);
                         if (update !== undefined) {
                             if (update._DELETED !== true) {
                                 return { [idKey]: id, ...rest }
@@ -187,11 +187,11 @@ define(['updeep'], function(u) {
                 };
                 const updates = { ...product.extendedData };
 
-                if (prevVertices && vertices && vertices.some(({ id }) => prevVertices[id])) {
-                    updates.vertices = transformElements(prevVertices, 'id', vertices);
+                if (productVertices && vertices && vertices.some(({ id }) => productVertices[id])) {
+                    updates.vertices = transformElements(productVertices, 'id', vertices);
                 }
-                if (prevEdges && edges && edges.some(({ id }) => prevEdges[id])) {
-                    updates.edges = transformElements(prevEdges, 'edgeId', edges);
+                if (productEdges && edges && edges.some(({ id }) => productEdges[id])) {
+                    updates.edges = transformElements(productEdges, 'edgeId', edges);
                 }
 
                 return u({ extendedData: u.constant(updates) }, product)

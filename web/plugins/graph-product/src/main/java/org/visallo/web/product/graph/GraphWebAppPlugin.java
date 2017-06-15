@@ -14,6 +14,7 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.web.VisalloCsrfHandler;
 import org.visallo.web.WebApp;
 import org.visallo.web.WebAppPlugin;
+import org.visallo.web.privilegeFilters.EditPrivilegeFilter;
 import org.visallo.web.product.graph.routes.CollapseVertices;
 import org.visallo.web.product.graph.routes.RemoveVertices;
 import org.visallo.web.product.graph.routes.UpdateVertices;
@@ -44,9 +45,9 @@ public class GraphWebAppPlugin implements WebAppPlugin {
         Class<? extends Handler> authenticationHandlerClass = authenticationHandler.getClass();
         Class<? extends Handler> csrfHandlerClass = VisalloCsrfHandler.class;
 
-        app.post("/product/graph/vertices/collapse", authenticationHandlerClass, csrfHandlerClass, CollapseVertices.class);
-        app.post("/product/graph/vertices/remove", authenticationHandlerClass, csrfHandlerClass, RemoveVertices.class);
-        app.post("/product/graph/vertices/update", authenticationHandlerClass, csrfHandlerClass, UpdateVertices.class);
+        app.post("/product/graph/vertices/collapse", authenticationHandlerClass, csrfHandlerClass, EditPrivilegeFilter.class, CollapseVertices.class);
+        app.post("/product/graph/vertices/remove", authenticationHandlerClass, csrfHandlerClass, EditPrivilegeFilter.class, RemoveVertices.class);
+        app.post("/product/graph/vertices/update", authenticationHandlerClass, csrfHandlerClass, EditPrivilegeFilter.class, UpdateVertices.class);
 
         app.registerJavaScript("/org/visallo/web/product/graph/plugin.js");
 

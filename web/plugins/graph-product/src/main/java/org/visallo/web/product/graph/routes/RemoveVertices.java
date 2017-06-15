@@ -11,6 +11,7 @@ import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.vertexium.Visibility;
+import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -76,6 +77,14 @@ public class RemoveVertices implements ParameterizedHandler {
     ) throws Exception {
         JSONObject params = paramsStr == null ? new JSONObject() : new JSONObject(paramsStr);
         boolean removeChildren = params.optBoolean("removeChildren");
+
+        if (!workspaceRepository.hasWritePermissions(workspaceId, user)) {
+            throw new VisalloAccessDeniedException(
+                    "user " + user.getUserId() + " does not have write access to workspace " + workspaceId,
+                    user,
+                    workspaceId
+            );
+        }
 
         Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
                 user,

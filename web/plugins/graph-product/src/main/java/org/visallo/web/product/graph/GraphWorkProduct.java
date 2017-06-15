@@ -12,7 +12,6 @@ import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
@@ -20,7 +19,6 @@ import org.visallo.core.model.workspace.WorkspaceProperties;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.model.workspace.product.WorkProductElements;
 import org.visallo.core.security.VisalloVisibility;
-import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.StreamUtil;
@@ -527,23 +525,6 @@ public class GraphWorkProduct extends WorkProductElements {
         JSONArray children = update.optJSONArray("children");
         if (children != null) {
             GraphProductOntology.NODE_CHILDREN.updateProperty(elemCtx, children, visibility);
-        }
-    }
-
-    protected void updateProductEdge(ElementMutation<Edge> edgeMutation, JSONObject update, Visibility visibility) {
-        JSONObject position = update.optJSONObject("pos");
-        if (position != null) {
-            edgeMutation.setProperty(ENTITY_POSITION.getPropertyName(), position, visibility);
-        }
-
-        String parent = update.optString("parent");
-        if (parent != null) {
-            edgeMutation.setProperty(GraphProductOntology.PARENT_NODE.getPropertyName(), position, visibility);
-        }
-
-        JSONArray children = update.optJSONArray("children");
-        if (children != null) {
-            edgeMutation.setProperty(GraphProductOntology.NODE_CHILDREN.getPropertyName(), position, visibility);
         }
     }
 

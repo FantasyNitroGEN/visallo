@@ -160,38 +160,41 @@ define([
         }, state);
     }
 
-    function updateVisibleCollapsedNodes(state, {workspaceId, vertices, edges}) {
+    function updateVisibleCollapsedNodes(state, {workspaceId, vertices}) {
         const updateProduct = (product) => {
-            if (product.extendedData) {
-                const { vertices: prevVertices, edges: prevEdges } = product.extendedData;
-                const transformElements = (prevElements, idKey, updateElements) => {
-                    return _.mapObject(prevElements, (element) => {
-                        const { id, unauthorized, ...rest } = element;
-                        const update = updateElements.find((e) => e[idKey] === id);
-                        if (update !== undefined) {
-                            if (update._DELETED !== true) {
-                                return { [idKey]: id, ...rest }
+            if (product && product.extendedData) {
+                const { vertices: productVertices, compoundNodes: collapsedNodes } = product.extendedData;
+                if (productVertices && collapsedNodes) {
+                    const authorizedVertices =  _.pick(productVertices, v => vertices[v.id] ? !vertices[v.id]._DELETED : !v.unauthorized);
+                    const visibleCollapsedNodes = _.mapObject(collapsedNodes, (collapsedNode, id) => {
+                        const queue = [...collapsedNode.children];
+                        let visible = false;
+                        while (!visible && queue.length) {
+                            const id = queue.pop();
+                            const children = collapsedNodes[id] && collapsedNodes[id].children;
+                            if (children) {
+                                children.forEach(child => { queue.push(child) });
                             } else {
-                                return { [idKey]: id, unauthorized: true, ...rest };
+                                visible = id in authorizedVertices;
                             }
-                        } else {
-                            return element;
                         }
+
+                        return visible;
                     });
-                };
-                const updates = { ...product.extendedData };
 
-                if (prevVertices && vertices && vertices.some(({ id }) => prevVertices[id])) {
-                    updates.vertices = transformElements(prevVertices, 'id', vertices);
+                    return u.updateIn(
+                        `extendedData.compoundNodes`,
+                        collapsedNodes => _.mapObject(collapsedNodes, ({ id, visible, ...rest }) => (
+                            {
+                                id,
+                                visible: visibleCollapsedNodes[id],
+                                ...rest
+                            }
+                        )), product);
                 }
-                if (prevEdges && edges && edges.some(({ id }) => prevEdges[id])) {
-                    updates.edges = transformElements(prevEdges, 'edgeId', edges);
-                }
-
-                return u({ extendedData: u.constant(updates) }, product)
-            } else {
-                return product;
             }
+
+            return product;
         }
 
         return u({

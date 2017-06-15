@@ -50,17 +50,17 @@ it('Should only call extension functions on vertex changes', () => {
     let props = {
         workspace: { editable: true },
         uiPreferences: { },
-        product: { extendedData: { vertices: [], edges: ['e1', 'e2'] } },
+        product: { extendedData: { vertices: {}, edges: {e1: {}, e2: {}}, compoundNodes: {} } },
         productElementIds: {
-            vertices: [
-                { id:'v1', pos: {x:0,y:0} },
-                { id:'v2', pos: {x:0,y:0} }
-            ],
-            edges: [
-                { edgeId:'e1', label: 'e1Label', inVertexId: 'v2', outVertexId: 'v1'  },
-                { edgeId:'e2', label: 'e2Label', inVertexId: 'v2', outVertexId: 'v1'  },
-                { edgeId:'e3', label: 'e2Label', inVertexId: 'v2', outVertexId: 'v1'  }
-            ]
+            vertices: {
+                v1: { id:'v1', parent: 'root', type: 'vertex', pos: {x:0,y:0} },
+                v2: { id:'v2', parent: 'root', type: 'vertex', pos: {x:0,y:0} }
+            },
+            edges: {
+                e1: { edgeId:'e1', label: 'e1Label', inVertexId: 'v2', outVertexId: 'v1'  },
+                e2: { edgeId:'e2', label: 'e2Label', inVertexId: 'v2', outVertexId: 'v1'  },
+                e3: { edgeId:'e3', label: 'e2Label', inVertexId: 'v2', outVertexId: 'v1'  }
+            }
         },
         ontology: { relationships: { } },
         elements: {
@@ -73,8 +73,8 @@ it('Should only call extension functions on vertex changes', () => {
                 'e3': { id: 'e3', label: 'e2Label', properties: [] }
             }
         },
-        selection: { vertices: [], edges: [] },
-        focusing: { vertices: [], edges: [] },
+        selection: { vertices: {}, edges: {} },
+        focusing: { vertices: {}, edges: {} },
         registry: {
             'org.visallo.graph.view': [],
             'org.visallo.graph.style': [],

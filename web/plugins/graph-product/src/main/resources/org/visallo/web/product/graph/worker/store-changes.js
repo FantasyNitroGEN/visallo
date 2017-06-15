@@ -55,49 +55,39 @@ define([
         })
     }
 
-    function updateVisibleCollapsedNodes(state) {}
-
-//    function updateVisibleCollapsedNodes(store) {
-//TODO update visibility of collapsedNodes (may also could do it in graph reducer?)
-//        var prevVertices;
-//        store.subscribe(function() {
-//            const state = store.getState();
+    function updateVisibleCollapsedNodes(dispatch, state) {}
 //            const workspaceId = state.workspace.currentId;
+//            const newVertices = state.element[workspaceId].vertices;
 //
-//            if (workspaceId && state.element[workspaceId]) {
-//                const newVertices = state.element[workspaceId].vertices;
-//                if (prevVertices !== newVertices) {
-//                    productSelectors.getProducts(state)
-//                        .filter(product => product.kind === 'org.visallo.web.product.graph.GraphWorkProduct')
-//                        .forEach(product => {
-//                            if (product.extendedData) {
-//                                const { vertices, collapsedNodes } = product.extendedData.vertices;
-//                                const addEdges = {};
-//                                _.each(newEdges, (edge, id) => {
-//                                    if (edge !== null && (!(id in edges) || !edges[id].inVertexId || !edges[id].outVertexId)) {
-//                                        if (edge.inVertexId in vertices && edge.outVertexId in vertices) {
-//                                            addEdges[id] = {
-//                                                edgeId: id,
-//                                                ..._.pick(edge, 'inVertexId', 'outVertexId', 'label')
-//                                            };
-//                                        }
+//            productSelectors.getProducts(state)
+//                .filter(product => product.kind === 'org.visallo.web.product.graph.GraphWorkProduct')
+//                .forEach(product => {
+//                    if (product.extendedData) {
+//                        const { vertices, collapsedNodes } = product.extendedData.vertices;
+//                        if (vertices && collapsedNodes) {
+//
+//                            const addEdges = {};
+//                            _.each(newEdges, (edge, id) => {
+//                                if (edge !== null && (!(id in edges) || !edges[id].inVertexId || !edges[id].outVertexId)) {
+//                                    if (edge.inVertexId in vertices && edge.outVertexId in vertices) {
+//                                        addEdges[id] = {
+//                                            edgeId: id,
+//                                            ..._.pick(edge, 'inVertexId', 'outVertexId', 'label')
+//                                        };
 //                                    }
-//                                })
-//                                if (!_.isEmpty(addEdges)) {
-//                                    _.defer(() => {
-//                                        store.dispatch({
-//                                            type: 'PRODUCT_ADD_EDGE_IDS',
-//                                            payload: { workspaceId, productId: product.id, edges: addEdges }
-//                                        })
-//                                    })
 //                                }
+//                            })
+//                            if (!_.isEmpty(addEdges)) {
+//                                _.defer(() => {
+//                                    store.dispatch({
+//                                        type: 'PRODUCT_ADD_EDGE_IDS',
+//                                        payload: { workspaceId, productId: product.id, edges: addEdges }
+//                                    })
+//                                })
 //                            }
-//                        })
-//                }
-//
-//                prevEdges = newEdges;
-//                prevVertices = newVertices;
-//            }
+//                        }
+//                    }
+//                })
 //        })
 //    }
 });

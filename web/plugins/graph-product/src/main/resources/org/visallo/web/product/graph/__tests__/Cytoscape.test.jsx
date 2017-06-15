@@ -107,5 +107,5 @@ function render(props = {}) {
 }
 
 function comp(props = {}) {
-    return <Cytoscape {...props} _disablePreviewDelay={true} />
+    return <Cytoscape {...props} onCollapseSelectedNodes={() => {}}_disablePreviewDelay={true} />
 }

@@ -178,7 +178,6 @@ define([
                 });
                 const childIdsString = childIds.join(';');
                 const existingCollapsedNodeImageUriInfo = collapsedImageDataUris[collapsedNodeId];
-                console.log('existingCollapsedNodeImageUriInfo.childIdsString === childIdsString', existingCollapsedNodeImageUriInfo && existingCollapsedNodeImageUriInfo.childIdsString === childIdsString); //TODO: remove debugging
                 if (existingCollapsedNodeImageUriInfo && existingCollapsedNodeImageUriInfo.childIdsString === childIdsString) {
                     return;
                 }

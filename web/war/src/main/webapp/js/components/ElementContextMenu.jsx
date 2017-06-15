@@ -357,7 +357,8 @@ define([
             return [
                 {
                     label: i18n('vertex.contextmenu.uncollapse'),
-                    event: 'uncollapse'
+                    event: 'uncollapse',
+                    cls: 'requires-EDIT'
                 }
             ];
         },

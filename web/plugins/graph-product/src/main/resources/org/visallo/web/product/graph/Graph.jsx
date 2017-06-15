@@ -203,9 +203,15 @@ define([
             this.saveViewport(this.props)
         },
 
-        teardownPreviews() {
+        teardownPreviews(vertexIds) {
             if (this.detailPopoversMap) {
-                _.each(this.detailPopoversMap, e => $(e).teardownAllComponents())
+                const updatePreviews = vertexIds || Object.keys(this.detailPopoversMap);
+                _.mapObject(this.detailPopoversMap, (e, id) => {
+                    if (updatePreviews.includes(id)) {
+                        $(e).teardownAllComponents()
+                    }
+                    delete this.detailPopoversMap[id]
+                });
                 this.detailPopoversMap = {};
             }
         },
@@ -465,22 +471,31 @@ define([
         onCollapseSelectedNodes(nodes) {
             const { product, productElementIds, rootId } = this.props;
             const collapsedNodes = product.extendedData.compoundNodes;
-            let vertexIds = [];
 
             if (nodes.length < 2) return;
 
             const children = nodes.map(node => node.id());
             const positions = nodes.map(node => retina.pixelsToPoints(node.position()));
             const pos = {
-                x: Math.floor(positions.reduce((total, pos) => total + pos.x, 0) / positions.length),
-                y: Math.floor(positions.reduce((total, pos) => total + pos.y, 0) / positions.length)
+                x: Math.round(positions.reduce((total, pos) => total + pos.x, 0) / positions.length),
+                y: Math.round(positions.reduce((total, pos) => total + pos.y, 0) / positions.length)
             };
 
             this.props.onCollapseNodes(product.id, {
                 children,
                 pos,
                 parent: rootId
-             });
+            });
+
+            let vertexIds = [];
+            _.each(nodes, node => {
+                if (node.data('vertexIds')) {
+                    vertexIds = vertexIds.concat(node.data('vertexIds'));
+                } else {
+                    vertexIds.push(node.id());
+                }
+            });
+            this.teardownPreviews(vertexIds);
         },
 
         onMenuCreateVertex({pageX, pageY }) {
@@ -721,8 +736,6 @@ define([
         },
 
         mapPropsToElements(editable) {
-            const renderCalls = { vertex: 0, compoundNode: 0 }; //TODO: remove debugging
-
             const { selection, ghosts, productElementIds, elements, ontology, registry, focusing, product } = this.props;
             const { hovering, collapsedImageDataUris } = this.state;
             const { vertices: productVertices, edges: productEdges } = productElementIds;
@@ -736,7 +749,7 @@ define([
             const cyNodeConfig = (node) => {
                 const { id, type, pos, children, parent, title } = node;
                 let selected, classes, data;
-                renderCalls[type] = renderCalls[type] + 1;
+
                 if (type === 'vertex') {
                    selected = id in verticesSelectedById;
                    classes = mapVertexToClasses(id, vertices, focusing, registry['org.visallo.graph.node.class']);
@@ -1000,9 +1013,7 @@ define([
                     }
                 })
                 .value();
-            const xEdges = _.chain(cyEdges)
 
-            console.log(`graph mapPropsToElements ${renderCalls.vertex} ${renderCalls.compoundNode}`) //TODO: remove debugging
             return { nodes: cyNodes, edges: cyEdges };
 
         },
