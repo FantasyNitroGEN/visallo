@@ -939,7 +939,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                     if (possibleValues != null) {
                         OntologyProperties.POSSIBLE_VALUES.updateProperty(elemCtx, JSONUtil.toJson(possibleValues), metadata, visibility);
                     }
-                    if (textIndexHints.size() > 0) {
+                    if (textIndexHints != null && textIndexHints.size() > 0) {
                         textIndexHints.forEach(i -> {
                             String textIndexHint = i.toString();
                             OntologyProperties.TEXT_INDEX_HINTS.updateProperty(elemCtx, textIndexHint, textIndexHint, metadata, visibility);
