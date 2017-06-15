@@ -20,10 +20,7 @@ import org.semanticweb.owlapi.io.ReaderDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.search.EntitySearcher;
-import org.vertexium.Authorizations;
-import org.vertexium.DefinePropertyBuilder;
-import org.vertexium.Graph;
-import org.vertexium.TextIndexHint;
+import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.query.Contains;
 import org.vertexium.query.Query;
@@ -630,6 +627,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                     null,
                     null
             );
+            property.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), propertyDisplayName, authorizations);
 
             for (OWLAnnotation annotation : EntitySearcher.getAnnotations(dataTypeProperty, o)) {
                 String annotationIri = annotation.getProperty().getIRI().toString();
@@ -1199,7 +1197,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     @Deprecated
     @Override
-    public Relationship getRelationshipByIRI(String relationshipIRI) {
+    public final Relationship getRelationshipByIRI(String relationshipIRI) {
         return getRelationshipByIRI(relationshipIRI, null, null);
     }
 
@@ -1882,4 +1880,8 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
         return privilegeRepository;
     }
+
+    protected abstract void deleteChangeableProperties(OntologyElement element, Authorizations authorizations);
+
+    protected abstract void deleteChangeableProperties(OntologyProperty property, Authorizations authorizations);
 }

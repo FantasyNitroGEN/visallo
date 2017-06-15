@@ -605,7 +605,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         Concept concept = getConceptByIRI(conceptIRI, user, workspaceId);
         if (concept != null) {
             if (deleteChangeableProperties) {
-                deleteChangeableProperties(((VertexiumConcept) concept).getVertex(), getAuthorizations(user, workspaceId));
+                deleteChangeableProperties(concept, getAuthorizations(user, workspaceId));
             }
             return concept;
         }
@@ -841,7 +841,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         Relationship relationship = getRelationshipByIRI(relationshipIRI, user, workspaceId);
         if (relationship != null) {
             if (isDeclaredInOntology) {
-                deleteChangeableProperties(((VertexiumRelationship) relationship).getVertex(), getAuthorizations(user, workspaceId));
+                deleteChangeableProperties(relationship, getAuthorizations(user, workspaceId));
             }
             return relationship;
         }
@@ -965,7 +965,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             }
         } else {
             propertyVertex = ((VertexiumOntologyProperty) typeProperty).getVertex();
-            deleteChangeableProperties(propertyVertex, authorizations);
+            deleteChangeableProperties(typeProperty, authorizations);
         }
         return propertyVertex;
     }
@@ -1127,6 +1127,18 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
      */
     protected Concept createConcept(Vertex vertex, String workspaceId) {
         return new VertexiumConcept(vertex, workspaceId);
+    }
+
+    @Override
+    protected void deleteChangeableProperties(OntologyProperty property, Authorizations authorizations) {
+        Vertex vertex = ((VertexiumOntologyProperty)property).getVertex();
+        deleteChangeableProperties(vertex, authorizations);
+    }
+
+    @Override
+    protected void deleteChangeableProperties(OntologyElement element, Authorizations authorizations) {
+        Vertex vertex = element instanceof VertexiumConcept ? ((VertexiumConcept) element).getVertex() :((VertexiumRelationship) element).getVertex();
+        deleteChangeableProperties(vertex, authorizations);
     }
 
     private void deleteChangeableProperties(Vertex vertex, Authorizations authorizations) {

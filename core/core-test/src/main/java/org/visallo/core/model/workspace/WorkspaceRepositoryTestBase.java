@@ -2,7 +2,6 @@ package org.visallo.core.model.workspace;
 
 import com.google.common.collect.Sets;
 import org.json.JSONObject;
-import org.junit.Before;
 import org.junit.Test;
 import org.vertexium.*;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
@@ -18,26 +17,29 @@ import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloInMemoryTestBase;
 import org.visallo.web.clientapi.model.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeTrue;
 
 public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBase {
     private static final String JUNIT_CONCEPT_TYPE = "junit-concept-iri";
     private static final String JUNIT_EDGE_LABEL = "junit-edge-iri";
     private static final String JUNIT_PROPERTY_NAME = "junit-property-iri";
 
-    private WorkspaceHelper workspaceHelper;
-
     private User user;
     private Workspace workspace;
     private Authorizations workspaceAuthorizations;
     private Concept thingConcept;
+    private WorkspaceHelper workspaceHelper;
 
-    @Before
+    @Override
     public void before() {
         super.before();
-        user = getUserRepository().findOrAddUser("junit", "Junit", "junit@visallo.com", "password");
+        user = getUserRepository().findOrAddUser("base-junit", "Base Junit", "base-junit@visallo.com", "password");
 
         User systemUser = getUserRepository().getSystemUser();
         Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(systemUser);
@@ -59,6 +61,10 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         workspaceAuthorizations = getAuthorizationRepository().getGraphAuthorizations(user, workspace.getWorkspaceId());
     }
 
+    protected boolean supportsWorkProducts() {
+        return true;
+    }
+
     private WorkspaceHelper getWorkspaceHelper() {
         if (workspaceHelper == null) {
             workspaceHelper = new WorkspaceHelper(
@@ -75,11 +81,16 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         return workspaceHelper;
     }
 
-    @Override
-    protected abstract WorkspaceRepository getWorkspaceRepository();
+    @Test
+    public void testFindByIdNotExists() {
+        Workspace ws = getWorkspaceRepository().findById("workspaceNotExists", false, user);
+        assertEquals(null, ws);
+    }
 
     @Test
     public void testUpdateProductExtendedData() {
+        assumeTrue(supportsWorkProducts());
+
         String kind = MockWorkProduct.class.getName();
         JSONObject params = new JSONObject();
         JSONObject extendedData = new JSONObject();
@@ -122,6 +133,84 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
     }
 
     @Test
+    public void testPublishPropertyWithoutChange() {
+        Visibility defaultVisibility = getVisibilityTranslator().getDefaultVisibility();
+        Vertex entity1Vertex = getGraph().prepareVertex("entity1Id", defaultVisibility)
+                .addPropertyValue("key1", JUNIT_PROPERTY_NAME, "value1", new Metadata(), defaultVisibility)
+                .addPropertyValue("key9", "prop9", "value9", new Metadata(), defaultVisibility)
+                .save(getAuthorizationRepository().getGraphAuthorizations(getUserRepository().getSystemUser()));
+
+        ClientApiPublishItem[] publishDate = new ClientApiPublishItem[1];
+        publishDate[0] = new ClientApiPropertyPublishItem() {{
+            setAction(Action.ADD_OR_UPDATE);
+            setKey("key1");
+            setName(JUNIT_PROPERTY_NAME);
+            setVertexId(entity1Vertex.getId());
+        }};
+
+        Authorizations noAuthorizations = getAuthorizationRepository().getGraphAuthorizations(user);
+        ClientApiWorkspacePublishResponse response = getWorkspaceRepository().publish(
+                publishDate,
+                user,
+                workspace.getWorkspaceId(),
+                noAuthorizations
+        );
+
+        assertEquals(1, response.getFailures().size());
+        assertEquals(ClientApiPublishItem.Action.ADD_OR_UPDATE, response.getFailures().get(0).getAction());
+        assertEquals("property", response.getFailures().get(0).getType());
+        assertEquals(
+                "no property with key 'key1' and name '" + JUNIT_PROPERTY_NAME + "' found on workspace '" + workspace.getWorkspaceId() + "'",
+                response.getFailures().get(0).getErrorMessage()
+        );
+    }
+
+    @Test
+    public void testPublishPropertyWithChange() {
+        Visibility defaultVisibility = getVisibilityTranslator().getDefaultVisibility();
+        Vertex entity1Vertex = getGraph().prepareVertex("entity1Id", defaultVisibility)
+                .addPropertyValue("key1", JUNIT_PROPERTY_NAME, "value1", new Metadata(), defaultVisibility)
+                .addPropertyValue("key9", "prop9", "value9", new Metadata(), defaultVisibility)
+                .save(getAuthorizationRepository().getGraphAuthorizations(getUserRepository().getSystemUser()));
+
+        VisibilityAndElementMutation<Vertex> setPropertyResult = getGraphRepository().setProperty(
+                entity1Vertex,
+                JUNIT_PROPERTY_NAME,
+                "key1",
+                "newValue",
+                new Metadata(),
+                "",
+                "",
+                workspace.getWorkspaceId(),
+                "I changed it",
+                new ClientApiSourceInfo(),
+                user,
+                workspaceAuthorizations
+        );
+        setPropertyResult.elementMutation.save(workspaceAuthorizations);
+        getGraph().flush();
+
+        ClientApiPublishItem[] publishDate = new ClientApiPublishItem[1];
+        publishDate[0] = new ClientApiPropertyPublishItem() {{
+            setAction(Action.ADD_OR_UPDATE);
+            setKey("key1");
+            setName(JUNIT_PROPERTY_NAME);
+            setVertexId(entity1Vertex.getId());
+        }};
+        ClientApiWorkspacePublishResponse response = getWorkspaceRepository().publish(
+                publishDate,
+                user,
+                workspace.getWorkspaceId(),
+                workspaceAuthorizations
+        );
+        if (response.getFailures().size() > 0) {
+            String failMessage = "Had " + response.getFailures().size() + " failure(s): " + ": " + response.getFailures().get(
+                    0).getErrorMessage();
+            assertEquals(failMessage, 0, response.getFailures().size());
+        }
+    }
+
+    @Test
     public void testPublishingNewVertexWithUnknownConcept() {
         doTestPublishVertexAdd("junit-missing", "Unable to locate concept with IRI junit-missing", null);
     }
@@ -133,8 +222,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
 
     @Test
     public void testPublishingNewVertexAndConceptWithoutOntologyPublishPrivilege() {
-        UserPropertyPrivilegeRepository privilegeRepository = (UserPropertyPrivilegeRepository) getPrivilegeRepository();
-        privilegeRepository.setPrivileges(user, Sets.newHashSet(Privilege.ONTOLOGY_ADD), getUserRepository().getSystemUser());
+        setPrivileges(user, Sets.newHashSet(Privilege.ONTOLOGY_ADD));
 
         String newConceptIri = "new-concept";
         getOntologyRepository().getOrCreateConcept(thingConcept, newConceptIri, "Junit Concept", null, user, workspace.getWorkspaceId());
@@ -145,8 +233,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
 
     @Test
     public void testPublishingNewVertexAndConcept() {
-        UserPropertyPrivilegeRepository privilegeRepository = (UserPropertyPrivilegeRepository) getPrivilegeRepository();
-        privilegeRepository.setPrivileges(user, Sets.newHashSet(Privilege.ONTOLOGY_ADD, Privilege.ONTOLOGY_PUBLISH), getUserRepository().getSystemUser());
+        setPrivileges(user, Sets.newHashSet(Privilege.ONTOLOGY_ADD, Privilege.ONTOLOGY_PUBLISH));
 
         String newConceptIri = "new-concept";
         getOntologyRepository().getOrCreateConcept(thingConcept, newConceptIri, "Junit Concept", null, user, workspace.getWorkspaceId());

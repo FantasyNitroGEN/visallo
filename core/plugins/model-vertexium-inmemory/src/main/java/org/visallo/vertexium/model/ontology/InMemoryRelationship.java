@@ -8,15 +8,13 @@ import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.Relationship;
 import org.visallo.web.clientapi.model.SandboxStatus;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 public class InMemoryRelationship extends Relationship {
     private String relationshipIRI;
     private String displayName;
     private List<Relationship> inverseOfs = new ArrayList<>();
-    private List<String> intents = new ArrayList<>();
+    private Set<String> intents = new HashSet<>();
     private boolean userVisible = true;
     private boolean deleteable;
     private boolean updateable;
@@ -128,14 +126,22 @@ public class InMemoryRelationship extends Relationship {
 
     @Override
     public void removeProperty(String name, Authorizations authorizations) {
-        if (OntologyProperties.TITLE_FORMULA.getPropertyName().equals(name)) {
+        if (OntologyProperties.DISPLAY_NAME.getPropertyName().equals(name)) {
+            this.displayName = null;
+        } else if (OntologyProperties.TITLE_FORMULA.getPropertyName().equals(name)) {
             this.titleFormula = null;
         } else if (OntologyProperties.SUBTITLE_FORMULA.getPropertyName().equals(name)) {
             this.subtitleFormula = null;
         } else if (OntologyProperties.TIME_FORMULA.getPropertyName().equals(name)) {
             this.timeFormula = null;
-        } else {
-            throw new VisalloException("Remove not implemented for property " + name);
+        } else if (OntologyProperties.USER_VISIBLE.getPropertyName().equals(name)) {
+            this.userVisible = false;
+        } else if (OntologyProperties.DELETEABLE.getPropertyName().equals(name)) {
+            this.deleteable = false;
+        } else if (OntologyProperties.UPDATEABLE.getPropertyName().equals(name)) {
+            this.updateable = false;
+        } else if (OntologyProperties.INTENT.getPropertyName().equals(name)) {
+            intents.clear();
         }
     }
 

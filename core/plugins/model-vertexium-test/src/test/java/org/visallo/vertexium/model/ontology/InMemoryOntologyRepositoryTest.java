@@ -3,15 +3,13 @@ package org.visallo.vertexium.model.ontology;
 import org.vertexium.Authorizations;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.ontology.*;
-import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.PrivilegeRepository;
+import org.visallo.core.model.ontology.Concept;
+import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.ontology.OntologyRepositoryTestBase;
 import org.visallo.core.user.SystemUser;
 
-import static org.visallo.core.model.user.UserRepository.USER_CONCEPT_IRI;
-
-public class VertexiumOntologyRepositoryTest extends OntologyRepositoryTestBase {
-    private VertexiumOntologyRepository ontologyRepository;
+public class InMemoryOntologyRepositoryTest extends OntologyRepositoryTestBase {
+    private InMemoryOntologyRepository ontologyRepository;
 
     @Override
     protected OntologyRepository getOntologyRepository() {
@@ -19,12 +17,9 @@ public class VertexiumOntologyRepositoryTest extends OntologyRepositoryTestBase 
             return ontologyRepository;
         }
         try {
-            ontologyRepository = new VertexiumOntologyRepository(
+            ontologyRepository = new InMemoryOntologyRepository(
                     getGraph(),
-                    getGraphRepository(),
-                    getVisibilityTranslator(),
                     getConfiguration(),
-                    getGraphAuthorizationRepository(),
                     getLockRepository()
             ) {
                 @Override
@@ -32,18 +27,6 @@ public class VertexiumOntologyRepositoryTest extends OntologyRepositoryTestBase 
                     SystemUser systemUser = new SystemUser();
                     Concept rootConcept = getOrCreateConcept(null, ROOT_CONCEPT_IRI, "root", null, systemUser, null);
                     getOrCreateConcept(rootConcept, ENTITY_CONCEPT_IRI, "thing", null, systemUser, null);
-                    getOrCreateConcept(null, USER_CONCEPT_IRI, "visalloUser", null, false, systemUser, null);
-                    clearCache();
-                }
-
-                @Override
-                protected AuthorizationRepository getAuthorizationRepository() {
-                    return VertexiumOntologyRepositoryTest.this.getAuthorizationRepository();
-                }
-
-                @Override
-                protected PrivilegeRepository getPrivilegeRepository() {
-                    return VertexiumOntologyRepositoryTest.this.getPrivilegeRepository();
                 }
             };
         } catch (Exception ex) {
@@ -52,4 +35,3 @@ public class VertexiumOntologyRepositoryTest extends OntologyRepositoryTestBase 
         return ontologyRepository;
     }
 }
-
