@@ -3,10 +3,12 @@ package org.visallo.vertexium.model.ontology;
 import org.vertexium.Authorizations;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.ontology.*;
+import org.visallo.core.model.ontology.Concept;
+import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.ontology.OntologyRepositoryTestBase;
 
-public class VertexiumOntologyRepositoryTest extends OntologyRepositoryTestBase {
-    private VertexiumOntologyRepository ontologyRepository;
+public class InMemoryOntologyRepositoryTest extends OntologyRepositoryTestBase {
+    private InMemoryOntologyRepository ontologyRepository;
 
     @Override
     protected OntologyRepository getOntologyRepository() {
@@ -14,18 +16,15 @@ public class VertexiumOntologyRepositoryTest extends OntologyRepositoryTestBase 
             return ontologyRepository;
         }
         try {
-            ontologyRepository = new VertexiumOntologyRepository(
+            ontologyRepository = new InMemoryOntologyRepository(
                     getGraph(),
-                    getGraphRepository(),
                     getConfiguration(),
-                    getGraphAuthorizationRepository(),
                     getLockRepository()
             ) {
                 @Override
                 public void loadOntologies(Configuration config, Authorizations authorizations) throws Exception {
                     Concept rootConcept = getOrCreateConcept(null, ROOT_CONCEPT_IRI, "root", null);
                     getOrCreateConcept(rootConcept, ENTITY_CONCEPT_IRI, "thing", null);
-                    clearCache();
                 }
             };
         } catch (Exception ex) {
@@ -34,4 +33,3 @@ public class VertexiumOntologyRepositoryTest extends OntologyRepositoryTestBase 
         return ontologyRepository;
     }
 }
-

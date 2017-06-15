@@ -6,9 +6,7 @@ import org.apache.commons.io.IOUtils;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.ReaderDocumentSource;
 import org.semanticweb.owlapi.model.*;
-import org.vertexium.Authorizations;
-import org.vertexium.Graph;
-import org.vertexium.TextIndexHint;
+import org.vertexium.*;
 import org.vertexium.inmemory.InMemoryAuthorizations;
 import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.config.Configuration;
@@ -28,12 +26,10 @@ import static org.vertexium.util.IterableUtils.toList;
 public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(InMemoryOntologyRepository.class);
     private final Graph graph;
-    private final OWLOntologyLoaderConfiguration owlConfig = new OWLOntologyLoaderConfiguration();
     private final Map<String, InMemoryConcept> conceptsCache = new HashMap<>();
     private final Map<String, InMemoryOntologyProperty> propertiesCache = new HashMap<>();
     private final Map<String, InMemoryRelationship> relationshipsCache = new HashMap<>();
     private final List<OwlData> fileCache = new ArrayList<>();
-    private Authorizations authorizations;
 
     @Inject
     public InMemoryOntologyRepository(
@@ -45,10 +41,8 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         this.graph = graph;
 
         clearCache();
-        this.authorizations = new InMemoryAuthorizations(VISIBILITY_STRING);
-        owlConfig.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
 
-        loadOntologies(getConfiguration(), authorizations);
+        loadOntologies(getConfiguration(), new InMemoryAuthorizations(VISIBILITY_STRING));
     }
 
     @Override
@@ -192,26 +186,52 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             boolean updateable
     ) {
         checkNotNull(concepts, "concept was null");
-        InMemoryOntologyProperty property = getOrCreatePropertyType(
-                propertyIri,
-                dataType,
-                displayName,
-                possibleValues,
-                textIndexHints,
-                userVisible,
-                searchable,
-                addable,
-                sortable,
-                displayType,
-                propertyGroup,
-                boost,
-                validationFormula,
-                displayFormula,
-                dependentPropertyIris,
-                intents,
-                deleteable,
-                updateable
-        );
+        InMemoryOntologyProperty property = getPropertyByIRI(propertyIri);
+        if (property == null) {
+            searchable = determineSearchable(propertyIri, dataType, textIndexHints, searchable);
+            definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost, sortable);
+
+            if (dataType.equals(PropertyType.EXTENDED_DATA_TABLE)) {
+                property = new InMemoryExtendedDataTableOntologyProperty();
+            } else {
+                property = new InMemoryOntologyProperty();
+            }
+            property.setDataType(dataType);
+        } else {
+            deleteChangeableProperties(property, null);
+        }
+
+        property.setUserVisible(userVisible);
+        property.setSearchable(searchable);
+        property.setAddable(addable);
+        property.setSortable(sortable);
+        property.setTitle(propertyIri);
+        property.setBoost(boost);
+        property.setDisplayType(displayType);
+        property.setPropertyGroup(propertyGroup);
+        property.setValidationFormula(validationFormula);
+        property.setDisplayFormula(displayFormula);
+        property.setDeleteable(deleteable);
+        property.setUpdateable(updateable);
+        if (dependentPropertyIris != null && !dependentPropertyIris.isEmpty()) {
+            property.setDependentPropertyIris(dependentPropertyIris);
+        }
+        if (intents != null) {
+            for (String intent : intents) {
+                property.addIntent(intent);
+            }
+        }
+        if (displayName != null && !displayName.trim().isEmpty()) {
+            property.setDisplayName(displayName);
+        }
+        if (textIndexHints != null && textIndexHints.size() > 0) {
+            for (TextIndexHint textIndexHint : textIndexHints) {
+                property.addTextIndexHints(textIndexHint.toString());
+            }
+        }
+        property.setPossibleValues(possibleValues);
+        propertiesCache.put(propertyIri, property);
+
         for (Concept concept : concepts) {
             concept.getProperties().add(property);
         }
@@ -244,69 +264,6 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
         fromRelationshipMem.addInverseOf(inverseOfRelationshipMem);
         inverseOfRelationshipMem.addInverseOf(fromRelationshipMem);
-    }
-
-    private InMemoryOntologyProperty getOrCreatePropertyType(
-            final String propertyIri,
-            final PropertyType dataType,
-            final String displayName,
-            Map<String, String> possibleValues,
-            Collection<TextIndexHint> textIndexHints,
-            boolean userVisible,
-            boolean searchable,
-            boolean addable,
-            boolean sortable,
-            String displayType,
-            String propertyGroup,
-            Double boost,
-            String validationFormula,
-            String displayFormula,
-            ImmutableList<String> dependentPropertyIris,
-            String[] intents,
-            boolean deleteable,
-            boolean updateabale
-    ) {
-        InMemoryOntologyProperty property = getPropertyByIRI(propertyIri);
-        if (property == null) {
-            searchable = determineSearchable(propertyIri, dataType, textIndexHints, searchable);
-            definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost, sortable);
-
-            if (dataType.equals(PropertyType.EXTENDED_DATA_TABLE)) {
-                property = new InMemoryExtendedDataTableOntologyProperty();
-            } else {
-                property = new InMemoryOntologyProperty();
-            }
-            property.setDataType(dataType);
-            property.setUserVisible(userVisible);
-            property.setSearchable(searchable);
-            property.setAddable(addable);
-            property.setSortable(sortable);
-            property.setTitle(propertyIri);
-            property.setBoost(boost);
-            property.setDisplayType(displayType);
-            property.setPropertyGroup(propertyGroup);
-            property.setValidationFormula(validationFormula);
-            property.setDisplayFormula(displayFormula);
-            property.setDependentPropertyIris(dependentPropertyIris);
-            property.setDeleteable(deleteable);
-            property.setUpdateable(updateabale);
-            if (intents != null) {
-                for (String intent : intents) {
-                    property.addIntent(intent);
-                }
-            }
-            if (displayName != null && !displayName.trim().isEmpty()) {
-                property.setDisplayName(displayName);
-            }
-            if (textIndexHints != null && textIndexHints.size() > 0) {
-                for (TextIndexHint textIndexHint : textIndexHints) {
-                    property.addTextIndexHints(textIndexHint.toString());
-                }
-            }
-            property.setPossibleValues(possibleValues);
-            propertiesCache.put(propertyIri, property);
-        }
-        return property;
     }
 
     @Override
@@ -423,6 +380,9 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     ) {
         InMemoryConcept concept = getConceptByIRI(conceptIRI);
         if (concept != null) {
+            if (isDeclaredInOntology) {
+                deleteChangeableProperties(concept, null);
+            }
             return concept;
         }
         if (parent == null) {
@@ -457,6 +417,9 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     ) {
         Relationship relationship = getRelationshipByIRI(relationshipIRI);
         if (relationship != null) {
+            if (isDeclaredInOntology) {
+                deleteChangeableProperties(relationship, null);
+            }
             return relationship;
         }
 
@@ -508,5 +471,43 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     protected Graph getGraph() {
         return graph;
+    }
+
+    @Override
+    protected void deleteChangeableProperties(OntologyProperty property, Authorizations authorizations) {
+        for (String propertyName : OntologyProperties.CHANGEABLE_PROPERTY_IRI) {
+            if (OntologyProperties.INTENT.getPropertyName().equals(propertyName)) {
+                for(String intent : property.getIntents()) {
+                    property.removeIntent(intent, null);
+                }
+            } else {
+                property.setProperty(propertyName, null, null);
+            }
+        }
+    }
+
+    @Override
+    protected void deleteChangeableProperties(OntologyElement element, Authorizations authorizations) {
+        for (String propertyName : OntologyProperties.CHANGEABLE_PROPERTY_IRI) {
+            if (element instanceof InMemoryRelationship) {
+                InMemoryRelationship inMemoryRelationship = (InMemoryRelationship) element;
+                if (OntologyProperties.INTENT.getPropertyName().equals(propertyName)) {
+                    for (String intent : inMemoryRelationship.getIntents()) {
+                        inMemoryRelationship.removeIntent(intent, null);
+                    }
+                } else {
+                    inMemoryRelationship.removeProperty(propertyName, null);
+                }
+            } else {
+                InMemoryConcept inMemoryConcept = (InMemoryConcept) element;
+                if (OntologyProperties.INTENT.getPropertyName().equals(propertyName)) {
+                    for (String intent : inMemoryConcept.getIntents()) {
+                        inMemoryConcept.removeIntent(intent, null);
+                    }
+                } else {
+                    inMemoryConcept.removeProperty(propertyName, null);
+                }
+            }
+        }
     }
 }
