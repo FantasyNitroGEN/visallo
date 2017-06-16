@@ -197,7 +197,7 @@ define([
             );
         }
 
-        const iconStyles = option.domainGlyphIconHref ? { backgroundSize: 'auto 70%' } : {};
+        const iconStyles = option.domainGlyphIconHref ? { backgroundSize: 'auto 80%' } : {};
 
         return (
             <div className={className.join(' ')}
@@ -208,18 +208,17 @@ define([
                 {
                     option.glyphIconHref ? (
                         <div className="icon" style={{ ...iconStyles, backgroundImage: `url(${option.glyphIconHref})` }} />
-                    ) : option.domainGlyphIconHref ? (
-                        <div className="icon" style={{ ...iconStyles, backgroundImage: `url(${option.domainGlyphIconHref})` }} />
+                    ) : (option.domainGlyphIconHref && option.rangeGlyphIconHref) ? (
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <div className="icon" style={{ ...iconStyles, margin: '0 0 0 5px', backgroundImage: `url(${option.domainGlyphIconHref})` }} />
+                        →
+                        <div className="icon" style={{ ...iconStyles, margin: '0 5px 0 0', backgroundImage: `url(${option.rangeGlyphIconHref})` }} />
+                        </div>
                     ) : (
                         <div className="icon" style={{ width: '6px', margin: '0' }} />
                     )
                 }
                 {option[labelKey]}
-                {
-                    option.rangeGlyphIconHref ? (
-                        <div className="icon" style={{ ...iconStyles, marginLeft: '5px', backgroundImage: `url(${option.rangeGlyphIconHref})` }} />
-                    ) : null
-                }
             </div>
         );
     }

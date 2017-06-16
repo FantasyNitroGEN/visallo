@@ -1,9 +1,9 @@
 define([
     'react',
     './ConceptSelector',
-    '../GlyphSelector'
-], function(React, ConceptsSelector, GlyphSelector) {
-    'use strict';
+    '../GlyphSelector',
+    '../ColorSelector'
+], function(React, ConceptsSelector, GlyphSelector, ColorSelector) {
 
     const PropTypes = React.PropTypes;
     const ConceptForm = React.createClass({
@@ -33,6 +33,7 @@ define([
                         creatable={false}
                         onSelected={this.onConceptSelected} />
 
+                    <ColorSelector onSelected={this.onColorSelected} />
                     <GlyphSelector search={value} onSelected={this.onIconSelected} />
 
                     <div style={{textAlign: 'right'}}>
@@ -51,6 +52,9 @@ define([
                 </div>
             )
         },
+        onColorSelected(color) {
+            this.setState({ color })
+        },
         onIconSelected(imgSrc) {
             this.setState({ imgSrc })
         },
@@ -64,7 +68,8 @@ define([
             this.props.onCreate({
                 parentConcept: this.state.parentConcept,
                 displayName: this.getValue(),
-                glyphIconHref: this.state.imgSrc
+                glyphIconHref: this.state.imgSrc,
+                color: this.state.color || 'rgb(0,0,0)'
             })
         }
     });

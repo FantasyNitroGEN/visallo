@@ -25,6 +25,13 @@ define([
     var getRelationship = function(iri) {
         return ontologySelectors.getRelationships(_state)[iri];
     };
+    var applyTint = function(url, color) {
+        var noTint = url.replace(/&tint=[^&+]/);
+        if (color) {
+            return noTint + `&tint=${encodeURIComponent(color)}`
+        }
+        return noTint;
+    };
     visalloData.storePromise.then(function(store) {
         _state = store.getState();
         store.subscribe(function() {
@@ -598,7 +605,7 @@ define([
                     }
                 }
 
-                return concept.glyphIconHref;
+                return applyTint(concept.glyphIconHref, concept.color);
             },
 
             /**
@@ -613,7 +620,10 @@ define([
             selectedImage: function(vertex, optionalWorkspaceId, width) {
                 var concept = V.concept(vertex),
                     conceptImage = V.image(vertex, optionalWorkspaceId, width);
-                return (conceptImage === concept.glyphIconHref) ? (concept.glyphIconSelectedHref || conceptImage) : conceptImage;
+                var out = conceptImage.indexOf(concept.glyphIconHref) === 0 ?
+                    (concept.glyphIconSelectedHref || applyTint(concept.glyphIconHref, '#ffffff')) :
+                    conceptImage;
+                return out;
             },
 
             /**
@@ -626,7 +636,7 @@ define([
              * concept icon.
              */
             imageIsFromConcept: function(vertex, optionalWorkspaceId) {
-                return V.image(vertex, optionalWorkspaceId) === V.concept(vertex).glyphIconHref;
+                return V.image(vertex, optionalWorkspaceId).indexOf(V.concept(vertex).glyphIconHref) === 0;
             },
 
             /**

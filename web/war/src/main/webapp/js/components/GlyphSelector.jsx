@@ -56,7 +56,7 @@ define([
                     optionRenderer={GlyphOptionRenderer}
                     optionHeight={28}
                     isLoading={isLoading}
-                    placeholder="Select Icon (optional)"
+                    placeholder="Icon (optional)"
                     valueRenderer={GlyphValueRenderer}
                 />
             )

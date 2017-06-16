@@ -6,16 +6,27 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.apache.commons.lang.StringUtils;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.user.User;
-import org.visallo.core.util.StringUtil;
 import org.visallo.web.VisalloResponse;
-import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
+import javax.imageio.ImageIO;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageFilter;
+import java.awt.image.RGBImageFilter;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ResourceGet implements ParameterizedHandler {
     private final OntologyRepository ontologyRepository;
@@ -29,6 +40,7 @@ public class ResourceGet implements ParameterizedHandler {
     public void handle(
             @Required(name = "id") String id,
             @Optional(name = "state") String state,
+            @Optional(name = "tint") String tint,
             User user,
             HttpServletRequest request,
             VisalloResponse response
@@ -38,7 +50,9 @@ public class ResourceGet implements ParameterizedHandler {
             throw new VisalloResourceNotFoundException("Could not find resource with id: " + id);
         }
 
-        glyph.write(request, response);
+        response.setContentType("image/png");
+        response.setHeader("Cache-Control", "max-age=" + (5 * 60));
+        glyph.write(tint, request, response);
     }
 
     private Glyph getConceptImage(String conceptIri, String state, User user, String workspaceId) {
@@ -85,10 +99,66 @@ public class ResourceGet implements ParameterizedHandler {
 
     interface Glyph {
         boolean isValid();
-        void write(HttpServletRequest request, VisalloResponse response) throws IOException;
+        void write(String tint, HttpServletRequest request, VisalloResponse response) throws IOException;
     }
 
-    class Image implements Glyph {
+    abstract class AbstractGlyph implements Glyph {
+        private int[] convert(String tint) {
+            Pattern hexPattern = Pattern.compile("^#.*$");
+            Pattern rgbPattern = Pattern.compile("^\\s*rgb\\((\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\)\\s*$");
+            if (tint != null) {
+                if (hexPattern.matcher(tint).matches()) {
+                    int hex = Integer.parseInt(tint.replace("#", ""), 16);
+                    int r = (hex >> 16) & 0xff;
+                    int g = (hex >> 8) & 0xff;
+                    int b = (hex >> 0) & 0xff;
+                    return new int[]{r, g, b};
+                }
+
+                Matcher m = rgbPattern.matcher(tint);
+                if (m.matches()) {
+                    return new int[]{
+                        Integer.parseInt(m.group(1)),
+                        Integer.parseInt(m.group(2)),
+                        Integer.parseInt(m.group(3))
+                    };
+                }
+            }
+            return null;
+        }
+
+        void write(BufferedImage bufferedImage, String tint, OutputStream outputStream) {
+            int[] tintColor = convert(tint);
+            if (tintColor != null && bufferedImage.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
+                ImageFilter filter = new RGBImageFilter() {
+                    @Override
+                    public int filterRGB(int x, int y, int rgb) {
+                        int a = (rgb >> 24) & 0xff;
+                        int r = tintColor[0];
+                        int g = tintColor[1];
+                        int b = tintColor[2];
+                        return a << 24 | r << 16 | g << 8 | b;
+                    }
+                };
+
+                FilteredImageSource filteredImageSource = new FilteredImageSource(bufferedImage.getSource(), filter);
+                java.awt.Image image = Toolkit.getDefaultToolkit().createImage(filteredImageSource);
+
+                int width = image.getWidth(null);
+                int height = image.getHeight(null);
+                bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
+                Graphics g = bufferedImage.getGraphics();
+                g.drawImage(image, 0, 0, null);
+            }
+            try {
+                ImageIO.write(bufferedImage, "png", outputStream);
+            } catch (IOException e) {
+                throw new VisalloException("Unable to tint image", e);
+            }
+        }
+    }
+
+    class Image extends AbstractGlyph {
         private byte[] img;
         public Image(byte[] img) {
             this.img = img;
@@ -99,14 +169,15 @@ public class ResourceGet implements ParameterizedHandler {
             }
             return true;
         }
-        public void write(HttpServletRequest request, VisalloResponse response) throws IOException {
-            response.setContentType("image/png");
-            response.setHeader("Cache-Control", "max-age=" + (5 * 60));
-            response.write(img);
+        public void write(String tint, HttpServletRequest request, VisalloResponse response) throws IOException {
+            try (ByteArrayInputStream is = new ByteArrayInputStream(img)) {
+                BufferedImage bufferedImage = ImageIO.read(is);
+                write(bufferedImage, tint, response.getOutputStream());
+            }
         }
     }
 
-    class Path implements Glyph {
+    class Path extends AbstractGlyph {
         private String path;
         public Path(String path) {
             this.path = path;
@@ -117,8 +188,12 @@ public class ResourceGet implements ParameterizedHandler {
             }
             return true;
         }
-        public void write(HttpServletRequest request, VisalloResponse response) throws IOException {
-            response.getHttpServletResponse().sendRedirect(path);
+        public void write(String tint, HttpServletRequest request, VisalloResponse response) throws IOException {
+            ServletContext servletContext = request.getServletContext();
+            try (InputStream openStream = servletContext.getResourceAsStream(path)) {
+                BufferedImage base = ImageIO.read(openStream);
+                write(base, tint, response.getOutputStream());
+            }
         }
     }
 }

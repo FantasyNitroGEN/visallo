@@ -594,7 +594,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    protected Concept internalGetOrCreateConcept(Concept parent, String conceptIRI, String displayName, String glyphIconHref, File inDir, boolean deleteChangeableProperties, User user, String workspaceId) {
+    protected Concept internalGetOrCreateConcept(Concept parent, String conceptIRI, String displayName, String glyphIconHref, String color, File inDir, boolean deleteChangeableProperties, User user, String workspaceId) {
         Concept concept = getConceptByIRI(conceptIRI, user, workspaceId);
         if (concept != null) {
             if (deleteChangeableProperties) {
@@ -626,6 +626,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 }
                 if (!StringUtils.isEmpty(glyphIconHref)) {
                     OntologyProperties.GLYPH_ICON_FILE_NAME.updateProperty(elemCtx, glyphIconHref, metadata, visibility);
+                }
+                if (!StringUtils.isEmpty(color)) {
+                    OntologyProperties.COLOR.updateProperty(elemCtx, color, metadata, visibility);
                 }
             }).get();
 

@@ -211,7 +211,7 @@ public interface OntologyRepository {
 
     Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, User user, String workspaceId);
 
-    Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, String glyphIconHref, File inDir, User user, String workspaceId);
+    Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, String glyphIconHref, String color, File inDir, User user, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
@@ -223,7 +223,7 @@ public interface OntologyRepository {
 
     Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean deleteChangeableProperties, User user, String workspaceId);
 
-    Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, String glyphIconHref, File inDir, boolean deleteChangeableProperties, User user, String workspaceId);
+    Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, String glyphIconHref, String color, File inDir, boolean deleteChangeableProperties, User user, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with

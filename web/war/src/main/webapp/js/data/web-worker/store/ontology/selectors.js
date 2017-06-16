@@ -68,9 +68,7 @@ define(['reselect'], function(reselect) {
             defaults: { glyphIconHref: 'img/glyphicons/glyphicons_194_circle_question_mark@2x.png' }
         });
         return _.mapObject(concepts, c => {
-            const newC = fn(c);
-            console.log(newC)
-            return { ...newC, displayNameSub: '' };
+            return { ...fn(c), displayNameSub: '' };
         });
     })
 
@@ -80,22 +78,24 @@ define(['reselect'], function(reselect) {
 
     const getRelationships = createSelector([getWorkspace, getOntologyRoot, getConcepts], (workspaceId, ontology, concepts) => {
         const relationships = ontology[workspaceId].relationships;
-        const mostTopLevelGlyphIconForIris = iris => {
-            const c = _.first(_.sortBy(iris.map(iri => concepts[iri]), 'depth'));
-            return c && c.glyphIconHref || null;
-        };
+        const getSortedConcepts = iris => _.chain(iris)
+            .map(iri => concepts[iri])
+            .sortBy('displayName')
+            .sortBy('depth')
+            .value();
         const fn = _collectParents(relationships, { parentKey: 'parentIri' });
-        return _.mapObject(relationships, r => {
+        return _.omit(_.mapObject(relationships, r => {
             const newR = fn(r);
-            const domainGlyphIconHref = mostTopLevelGlyphIconForIris(newR.domainConceptIris);
-            const rangeGlyphIconHref = mostTopLevelGlyphIconForIris(newR.rangeConceptIris);
-            const domains = newR.domainConceptIris.map(iri => concepts[iri].displayName)
-            const ranges = newR.rangeConceptIris.map(iri => concepts[iri].displayName)
-            const displayNameSub = domains.length === 1 ? ranges.map(r => domains[0] + '→' + r).join('\n') :
-                ranges.length === 1 ? domains.map(d => d + '→' + ranges[0]).join('\n') :
-                `(${domains}) → (${ranges})`
+            const domains = getSortedConcepts(newR.domainConceptIris);
+            const ranges = getSortedConcepts(newR.rangeConceptIris);
+            if (domains.length === 0 && ranges.length === 0) return null;
+            const domainGlyphIconHref = domains[0].glyphIconHref;
+            const rangeGlyphIconHref = ranges[0].glyphIconHref;
+            const displayNameSub = domains.length === 1 ? ranges.map(r => domains[0].displayName + '→' + r.displayName).join('\n') :
+                ranges.length === 1 ? domains.map(d => d.displayName + '→' + ranges[0].displayName).join('\n') :
+                `(${domains.map(d => d.displayName).join(', ')}) → (${ranges.map(r => r.displayName).join(', ')})`
             return { ...newR, domainGlyphIconHref, rangeGlyphIconHref, displayNameSub };
-        });
+        }), v => v === null);
     })
 
     const getVisibleRelationships = createSelector([getRelationships, getConcepts], (relationships, concepts) => {

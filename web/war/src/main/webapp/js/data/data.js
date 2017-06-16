@@ -6,7 +6,6 @@ define([
     './withBrokenWorkerConsole',
     './withDataRequestHandler',
     './withCurrentUser',
-    './withCachedConceptIcons',
     './withDocumentCopyText',
     './withWebsocket',
     './withWebsocketLegacy',

@@ -452,7 +452,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
     }
 
     @Override
-    protected Concept internalGetOrCreateConcept(Concept parent, String conceptIRI, String displayName, String glyphIconHref, File inDir, boolean deleteChangeableProperties, User user, String workspaceId) {
+    protected Concept internalGetOrCreateConcept(Concept parent, String conceptIRI, String displayName, String glyphIconHref, String color, File inDir, boolean deleteChangeableProperties, User user, String workspaceId) {
         InMemoryConcept concept = getConceptByIRI(conceptIRI, user, workspaceId);
 
         if (concept != null) {
@@ -468,6 +468,8 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         }
         concept.setProperty(OntologyProperties.TITLE.getPropertyName(), conceptIRI, null);
         concept.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), displayName, null);
+        concept.setProperty(OntologyProperties.COLOR.getPropertyName(), color, null);
+        concept.setProperty(OntologyProperties.GLYPH_ICON_FILE_NAME.getPropertyName(), glyphIconHref, null);
 
         String cacheKey = workspaceId == null ? PUBLIC_ONTOLOGY_CACHE_KEY : workspaceId;
         Map<String, InMemoryConcept> workspaceCache = conceptsCache.compute(cacheKey, (k, v) -> v == null ? new HashMap<>() : v);
