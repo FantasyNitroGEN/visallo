@@ -49,8 +49,10 @@ describe('graph plugin actions', () => {
                     productId: 'PRODUCT1',
                     updateVertices: {
                         VERTEX1: {
-                            x: 4.5,
-                            y: 10.1
+                            pos: {
+                                x: 4.5,
+                                y: 10.1
+                            }
                         }
                     },
                     undoable: true
@@ -69,19 +71,19 @@ describe('graph plugin actions', () => {
                         productId,
                         workspaceId,
                         updateVertices: {
-                            VERTEX1: { x: 5, y: 10 }
+                            VERTEX1: { id: 'VERTEX1', pos: { x: 5, y: 10 }}
                         },
                         undoScope: productId,
                         undo: {
                             productId,
                             updateVertices: {
-                                VERTEX1: { x: 0, y: 0 }
+                                VERTEX1: { id: 'VERTEX1', pos: { x: 0, y: 0 }}
                             }
                         },
                         redo: {
                             productId,
                             updateVertices: {
-                                VERTEX1: { x: 5, y: 10 }
+                                VERTEX1: { id: 'VERTEX1', pos: { x: 5, y: 10 }}
                             }
                         }
                     }
@@ -103,7 +105,7 @@ describe('graph plugin actions', () => {
                                 PRODUCT1: {
                                     extendedData: {
                                         vertices: {
-                                            0: {
+                                            VERTEX1: {
                                                 id: 'VERTEX1',
                                                 pos: {
                                                     x: 0,
@@ -124,8 +126,11 @@ describe('graph plugin actions', () => {
                     productId: 'PRODUCT1',
                     updateVertices: {
                         VERTEX1: {
-                            x: 4.5,
-                            y: 10.1
+                            id: 'VERTEX1',
+                            pos: {
+                                x: 4.5,
+                                y: 10.1
+                            }
                         }
                     },
                     undoable: true
@@ -145,19 +150,20 @@ describe('graph plugin actions', () => {
                         productId,
                         workspaceId,
                         updateVertices: {
-                            VERTEX1: { x: 5, y: 10 }
+                            VERTEX1: { id: 'VERTEX1', pos: { x: 5, y: 10 }}
                         },
                         undoScope: productId,
                         undo: {
                             productId,
                             removeElements: {
-                                vertexIds: [ 'VERTEX1' ]
+                                vertexIds: [ 'VERTEX1' ],
+                                collapsedNodeIds: []
                             }
                         },
                         redo: {
                             productId,
                             updateVertices: {
-                                VERTEX1: { x: 5, y: 10 }
+                                VERTEX1: { id: 'VERTEX1', pos: { x: 5, y: 10 }}
                             }
                         }
                     }
@@ -196,8 +202,11 @@ describe('graph plugin actions', () => {
                     productId: 'PRODUCT1',
                     updateVertices: {
                         VERTEX1: {
-                            x: 4.5,
-                            y: 10.1
+                            id: 'VERTEX1',
+                            pos: {
+                                x: 4.5,
+                                y: 10.1
+                            }
                         }
                     },
                     undoable: true
@@ -217,19 +226,19 @@ describe('graph plugin actions', () => {
                         productId,
                         workspaceId,
                         updateVertices: {
-                            VERTEX1: { x: 5, y: 10 }
+                            VERTEX1: { id: 'VERTEX1', pos: { x: 5, y: 10 }}
                         },
                         undoScope: productId,
                         undo: {
                             productId,
                             updateVertices: {
-                                VERTEX1: { x: 0, y: 0 }
+                                VERTEX1: { id: 'VERTEX1', pos: { x: 0, y: 0 }}
                             }
                         },
                         redo: {
                             productId,
                             updateVertices: {
-                                VERTEX1: { x: 5, y: 10 }
+                                VERTEX1: { id: 'VERTEX1', pos: { x: 5, y: 10 }}
                             }
                         }
                     }
@@ -240,7 +249,7 @@ describe('graph plugin actions', () => {
                         productId: 'PRODUCT1',
                         workspaceId: 'WORKSPACE1',
                         updateVertices: {
-                            VERTEX1: { x: 0, y: -12.5 }
+                            VERTEX1: { id: 'VERTEX1', pos: { x: 0, y: -12.5 }}
                         }
                     }
                 }
@@ -261,7 +270,7 @@ describe('graph plugin actions', () => {
                                 PRODUCT1: {
                                     extendedData: {
                                         vertices: {
-                                            0: {
+                                            VERTEX1: {
                                                 id: 'VERTEX1',
                                                 pos: {
                                                     x: 0,
@@ -282,8 +291,11 @@ describe('graph plugin actions', () => {
                     productId: 'PRODUCT1',
                     updateVertices: {
                         VERTEX1: {
-                            x: 4.5,
-                            y: 10.1
+                            id: 'VERTEX1',
+                            pos: {
+                                x: 4.5,
+                                y: 10.1
+                            }
                         }
                     },
                     undoable: true,
@@ -303,19 +315,20 @@ describe('graph plugin actions', () => {
                         productId,
                         workspaceId: 'WORKSPACE1',
                         updateVertices: {
-                            VERTEX1: { x: 5, y: 10 }
+                            VERTEX1: { id: 'VERTEX1', pos: { x: 5, y: 10 }}
                         },
                         undoScope: productId,
                         undo: {
                             productId,
                             removeElements: {
-                                vertexIds: [ 'VERTEX1' ]
+                                vertexIds: [ 'VERTEX1' ],
+                                collapsedNodeIds: []
                             }
                         },
                         redo: {
                             productId,
                             updateVertices: {
-                                VERTEX1: { x: 5, y: 10 }
+                                VERTEX1: { id: 'VERTEX1', pos: { x: 5, y: 10 }}
                             }
                         }
                     }
@@ -326,7 +339,7 @@ describe('graph plugin actions', () => {
                         productId,
                         workspaceId: 'WORKSPACE1',
                         updateVertices: {
-                            VERTEX1: { x: 0, y: -12.5 }
+                            VERTEX1: { id: 'VERTEX1', pos: { x: 0, y: -12.5 }}
                         }
                     }
                 },
@@ -364,8 +377,11 @@ describe('graph plugin actions', () => {
                     productId,
                     updateVertices: {
                         VERTEX1: {
-                            x: 4.5,
-                            y: 10.1
+                            id: 'VERTEX1',
+                            pos: {
+                                x: 4.5,
+                                y: 10.1
+                            }
                         }
                     },
                     undoable: true,

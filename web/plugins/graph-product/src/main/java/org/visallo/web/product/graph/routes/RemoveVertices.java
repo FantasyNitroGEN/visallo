@@ -10,7 +10,6 @@ import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
-import org.vertexium.Visibility;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
@@ -20,9 +19,7 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
-import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -36,7 +33,6 @@ public class RemoveVertices implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RemoveVertices.class);
 
     private final Graph graph;
-    private final VisibilityTranslator visibilityTranslator;
     private final WorkspaceRepository workspaceRepository;
     private final WorkQueueRepository workQueueRepository;
     private final OntologyRepository ontologyRepository;
@@ -47,7 +43,6 @@ public class RemoveVertices implements ParameterizedHandler {
     @Inject
     public RemoveVertices(
             Graph graph,
-            VisibilityTranslator visibilityTranslator,
             WorkspaceRepository workspaceRepository,
             WorkQueueRepository workQueueRepository,
             OntologyRepository ontologyRepository,
@@ -56,7 +51,6 @@ public class RemoveVertices implements ParameterizedHandler {
             UserRepository userRepository
     ) {
         this.graph = graph;
-        this.visibilityTranslator = visibilityTranslator;
         this.workspaceRepository = workspaceRepository;
         this.workQueueRepository = workQueueRepository;
         this.ontologyRepository = ontologyRepository;

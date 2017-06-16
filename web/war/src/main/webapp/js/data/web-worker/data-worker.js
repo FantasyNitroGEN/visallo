@@ -163,8 +163,7 @@ function setupRequireJs(data, callback) {
     require.deps = data.webWorkerResources;
     require.callback = callback;
     importScripts(BASE_URL + '/libs/requirejs/require.js?' + data.cacheBreaker);
-// TODO: put this back, commented for debugging
-//    require.load = asyncRequireJSLoader
+    require.load = asyncRequireJSLoader
 }
 
 function onMessageHandler(event) {
@@ -289,7 +288,6 @@ function ajaxPrefilter(xmlHttpRequest, method, url, parameters) {
 }
 
 function asyncRequireJSLoader(context, moduleName, url) {
-//TODO: how to get response from this so I can view in debug sources
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.responseType = 'blob';

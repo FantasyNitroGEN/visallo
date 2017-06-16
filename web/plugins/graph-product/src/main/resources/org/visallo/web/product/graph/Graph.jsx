@@ -73,12 +73,12 @@ define([
             }).isRequired,
             product: PropTypes.shape({
                 previewMD5: PropTypes.string,
-                extendedData: PropTypes.shape(propTypesElementArrays).isRequired
+                extendedData: PropTypes.shape(propTypesElementObjects).isRequired
             }).isRequired,
             uiPreferences: PropTypes.shape({
                 edgeLabels: PropTypes.bool
             }).isRequired,
-            productElementIds: PropTypes.shape(propTypesElementArrays).isRequired,
+            productElementIds: PropTypes.shape(propTypesElementObjects).isRequired,
             elements: PropTypes.shape({
                 vertices: PropTypes.object,
                 edges: PropTypes.object
@@ -579,11 +579,13 @@ define([
             const { cy, cyTarget } = event;
             if (cy !== cyTarget && event.originalEvent.ctrlKey) {
                 cy.autoungrabify(true);
-                this.setState({
-                    draw: {
-                        vertexId: cyTarget.id()
-                    }
-                });
+                if (cyTarget.hasClass('v')) {
+                    this.setState({
+                        draw: {
+                            vertexId: cyTarget.id()
+                        }
+                    });
+                }
             }
         },
 
@@ -606,7 +608,7 @@ define([
                     if (ctrlKey && upElement) {
                         this.onContextTap(event);
                     }
-                } else if (!upElement.isNode()) {
+                } else if (!upElement.hasClass('v')) {
                     this.cancelDraw();
                 } else {
                     this.setState({ draw: {...draw, toVertexId: upElement.id() } });
@@ -961,7 +963,7 @@ define([
                 .filter(({inNodeId, outNodeId}) => {
                     return inNodeId && outNodeId && (inNodeId !== outNodeId);
                 })
-                .groupBy(({ inNodeId, outNodeId }) => inNodeId + outNodeId)
+                .groupBy(({ inNodeId, outNodeId }) => (inNodeId < outNodeId ? inNodeId + outNodeId : outNodeId + inNodeId))
                 .reduce((edgeGroups, edgeGroup) => {
                     if (edgeGroup.length > MaxEdgesBetween) {
                         const { inNodeId, outNodeId } = edgeGroup[0];
@@ -1355,31 +1357,6 @@ define([
         }
         return cls.join(' ');
     };
-
-//TODO: remove probably
-//    const collapsedNodeToCyNode = (collapsedNodes, vertices, id) => {
-//        const result = memoizeFor('collapsedNodeToCyNode', collapsedNodes[id], function() {
-//            const collapsedNode = collapsedNodes[id];
-//            const title = generateCollapsedNodeTitle(collapsedNode, vertices);
-//            const truncatedTitle = F.string.truncate(title, 3);
-//            const conceptType = F.vertex.prop(vertex, 'conceptType');
-//            const imageSrc = CollapsedNodeImageHelpers.generateImageDataUriForCollapsedNode(
-//               vertices,
-//               collapsedNode
-//           );
-//
-//            return {
-//                ...collapsedNode,
-//                title,
-//                truncatedTitle,
-//                isTruncated: title !== truncatedTitle,
-//                imageSrc,
-//                selectedImageSrc: imageSrc
-//            };
-//        }, () => id);
-//
-//        return result;
-//    }
 
     const getCyItemTypeAsString = (item) => {
         if (item.isNode()) {

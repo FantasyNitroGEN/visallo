@@ -6,7 +6,6 @@ import com.google.inject.Inject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
-import org.vertexium.mutation.ElementMutation;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.model.graph.GraphRepository;
@@ -117,8 +116,9 @@ public class GraphWorkProduct extends WorkProductElements {
                                     if (nextChild == null) {
                                         nextChild = compoundNodes.optJSONObject((String) nextChildId);
                                     }
-
-                                    childrenDFS.push(nextChild);
+                                    if (nextChild != null) {
+                                        childrenDFS.push(nextChild);
+                                    }
                                 });
                             } else {
                                 visible = !next.optBoolean("unauthorized");

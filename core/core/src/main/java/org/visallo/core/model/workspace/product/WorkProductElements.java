@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 public abstract class WorkProductElements implements WorkProduct, WorkProductHasElements {
     private final OntologyRepository ontologyRepository;
     private final AuthorizationRepository authorizationRepository;
-    public static final String HAS_VERTEX_LABEL = "_hasVertex_";
 
     protected WorkProductElements(
             OntologyRepository ontologyRepository,
@@ -126,6 +125,8 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
 
     protected abstract void updateProductEdge(ElementUpdateContext<Edge> elemCtx, JSONObject update, Visibility visibility);
 
-    protected String getEdgeId(String productId, String vertexId) { return productId + HAS_VERTEX_LABEL + vertexId; }
+    protected String getEdgeId(String productId, String vertexId) {
+        return productId + "_hasVertex_" + vertexId;
+    }
 
 }

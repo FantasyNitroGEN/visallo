@@ -93,7 +93,7 @@ define([
                         updateVertices
                     }
                 };
-                if (Object.keys(updateVertices).length !== newVertices.length) {
+                if (Object.keys(updateVertices).length !== Object.keys(newVertices).length) {
                     undoPayload.undo.updateVertices = _.chain(updateVertices)
                                                         .mapObject((update, id) => productNodes[id])
                                                         .pick((node) => !!node)
@@ -101,8 +101,8 @@ define([
                 }
                 if (addingNewVertices) {
                     undoPayload.undo.removeElements = {
-                        vertexIds: Object.keys(byType, 'vertex'),
-                        collapsedNodeIds: Object.keys(byType, 'compoundNode')
+                        vertexIds: byType.vertex ? byType.vertex.map(v => v.id) : [],
+                        collapsedNodeIds: byType.compoundNode ? byType.compoundNode.map(n => n.id) : []
                     };
                 }
             }

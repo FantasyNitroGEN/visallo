@@ -94,7 +94,6 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
                 ], (productActions, productSelectors) => {
                     const selectedProduct = productSelectors.getProduct(state);
                     if (selectedProduct && selectedProduct.extendedData) {
-                        console.log('workspaceChange triggered product invalidate'); //TODO: remove debugging
                             dispatch(productActions.get({ productId: selectedProduct.id, invalidate: true }));
                     }
                 })

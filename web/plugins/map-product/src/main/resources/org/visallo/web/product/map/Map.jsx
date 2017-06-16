@@ -35,7 +35,8 @@ define([
             configProperties: PropTypes.object.isRequired,
             onUpdateViewport: PropTypes.func.isRequired,
             onSelectElements: PropTypes.func.isRequired,
-            onVertexMenu: PropTypes.func.isRequired
+            onVertexMenu: PropTypes.func.isRequired,
+            elements: PropTypes.shape({ vertices: PropTypes.object, edges: PropTypes.object })
         },
 
         getInitialState() {

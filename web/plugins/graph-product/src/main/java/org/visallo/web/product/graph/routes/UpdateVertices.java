@@ -8,7 +8,6 @@ import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
-import org.vertexium.Visibility;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
@@ -20,7 +19,6 @@ import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloLogger;
@@ -38,7 +36,6 @@ public class UpdateVertices implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UpdateVertices.class);
 
     private final Graph graph;
-    private final VisibilityTranslator visibilityTranslator;
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceHelper workspaceHelper;
     private final WorkQueueRepository workQueueRepository;
@@ -50,7 +47,6 @@ public class UpdateVertices implements ParameterizedHandler {
     @Inject
     public UpdateVertices(
             Graph graph,
-            VisibilityTranslator visibilityTranslator,
             WorkspaceRepository workspaceRepository,
             WorkspaceHelper workspaceHelper,
             WorkQueueRepository workQueueRepository,
@@ -60,7 +56,6 @@ public class UpdateVertices implements ParameterizedHandler {
             UserRepository userRepository
     ) {
         this.graph = graph;
-        this.visibilityTranslator = visibilityTranslator;
         this.workspaceRepository = workspaceRepository;
         this.workspaceHelper = workspaceHelper;
         this.workQueueRepository = workQueueRepository;
