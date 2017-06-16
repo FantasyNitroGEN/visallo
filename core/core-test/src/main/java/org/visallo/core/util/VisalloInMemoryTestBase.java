@@ -29,6 +29,7 @@ import org.visallo.core.model.workspace.product.WorkProduct;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.time.TimeRepository;
+import org.visallo.core.user.User;
 import org.visallo.vertexium.model.longRunningProcess.VertexiumLongRunningProcessRepository;
 import org.visallo.vertexium.model.ontology.InMemoryOntologyRepository;
 import org.visallo.vertexium.model.user.VertexiumUserRepository;
@@ -167,7 +168,12 @@ public abstract class VisalloInMemoryTestBase {
                 getUserNotificationRepository(),
                 getWorkQueueRepository(),
                 getGraphAuthorizationRepository()
-        );
+        ) {
+            @Override
+            protected UserRepository getUserRepository() {
+                return VisalloInMemoryTestBase.this.getUserRepository();
+            }
+        };
         return authorizationRepository;
     }
 
@@ -292,6 +298,10 @@ public abstract class VisalloInMemoryTestBase {
         return new ArrayList<>();
     }
 
+    protected void setPrivileges(User user, Set<String> privileges) {
+        ((UserPropertyPrivilegeRepository)getPrivilegeRepository()).setPrivileges(user, privileges, getUserRepository().getSystemUser());
+    }
+
     protected PrivilegeRepository getPrivilegeRepository() {
         if (privilegeRepository != null) {
             return privilegeRepository;
@@ -305,6 +315,11 @@ public abstract class VisalloInMemoryTestBase {
             @Override
             protected Iterable<PrivilegesProvider> getPrivilegesProviders(Configuration configuration) {
                 return VisalloInMemoryTestBase.this.getPrivilegesProviders();
+            }
+
+            @Override
+            protected UserRepository getUserRepository() {
+                return VisalloInMemoryTestBase.this.getUserRepository();
             }
         };
         return privilegeRepository;
@@ -345,7 +360,19 @@ public abstract class VisalloInMemoryTestBase {
             return configuration;
         }
         HashMap config = getConfigurationMap();
-        configuration = new HashMapConfigurationLoader(config).createConfiguration();
+        HashMapConfigurationLoader configLoader = new HashMapConfigurationLoader(config);
+
+        configuration = new Configuration(configLoader, config) {
+            @Override
+            protected OntologyRepository getOntologyRepository() {
+                return VisalloInMemoryTestBase.this.getOntologyRepository();
+            }
+
+            @Override
+            protected PrivilegeRepository getPrivilegeRepository() {
+                return VisalloInMemoryTestBase.this.getPrivilegeRepository();
+            }
+        };
         return configuration;
     }
 
