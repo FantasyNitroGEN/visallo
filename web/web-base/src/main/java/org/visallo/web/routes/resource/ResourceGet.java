@@ -31,6 +31,9 @@ import java.util.regex.Pattern;
 public class ResourceGet implements ParameterizedHandler {
     private final OntologyRepository ontologyRepository;
 
+    private static Pattern hexPattern = Pattern.compile("^#.*$");
+    private static Pattern rgbPattern = Pattern.compile("^\\s*rgb\\((\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\)\\s*$");
+
     @Inject
     public ResourceGet(final OntologyRepository ontologyRepository) {
         this.ontologyRepository = ontologyRepository;
@@ -103,9 +106,8 @@ public class ResourceGet implements ParameterizedHandler {
     }
 
     abstract class AbstractGlyph implements Glyph {
+
         private int[] convert(String tint) {
-            Pattern hexPattern = Pattern.compile("^#.*$");
-            Pattern rgbPattern = Pattern.compile("^\\s*rgb\\((\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\)\\s*$");
             if (tint != null) {
                 if (hexPattern.matcher(tint).matches()) {
                     int hex = Integer.parseInt(tint.replace("#", ""), 16);
