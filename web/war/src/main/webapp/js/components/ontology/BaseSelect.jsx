@@ -81,8 +81,9 @@ define([
             }
         },
         render() {
-            const { creating, value, CreateForm, selectComponent } = this.state;
-            const { formProps, value: defaultValue, creatable, createForm, ...rest } = this.props;
+            const { creating, value, CreateForm, selectComponent, key } = this.state;
+            const { formProps, value: defaultValue, creatable, createForm, disabled, placeholder, ...rest } = this.props;
+            const hasKey = Boolean(key);
             return (
                 <div>
                 {
@@ -98,6 +99,9 @@ define([
                             simpleValue
                             clearable
                             searchable
+                            isLoading={hasKey}
+                            disabled={disabled || hasKey}
+                            placeholder={hasKey ? 'Creating…' : placeholder}
                             selectComponent={selectComponent}
                             promptTextCreator={label => `Create "${label}"`}
                             // Bug in Creatable? that the default optioncreator doesn't
@@ -144,7 +148,6 @@ define([
         onCreate(option) {
             const key = keyCounter();
             this.props.onCreate(option, { key });
-            // TODO: should have a loading state
             this.setState({ creating: false, key })
         },
         onNewOptionClick(option) {
