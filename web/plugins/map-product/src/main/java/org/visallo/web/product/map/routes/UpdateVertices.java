@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -23,6 +24,7 @@ import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.VisalloResponse;
+import org.visallo.web.clientapi.model.ClientApiSuccess;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.SourceGuid;
@@ -62,13 +64,12 @@ public class UpdateVertices implements ParameterizedHandler {
     }
 
     @Handle
-    public void handle(
+    public ClientApiSuccess handle(
             @Required(name = "updates") String updates,
             @Required(name = "productId") String productId,
             @ActiveWorkspaceId String workspaceId,
             @SourceGuid String sourceGuid,
-            User user,
-            VisalloResponse response
+            User user
     ) throws Exception {
         JSONObject updateVertices = new JSONObject(updates);
         Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
@@ -83,13 +84,13 @@ public class UpdateVertices implements ParameterizedHandler {
                 user
         );
 
-        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.HIGH, user, authorizations)) {
             MapWorkProduct mapWorkProduct = new MapWorkProduct(ontologyRepository, authorizationRepository);
             Vertex productVertex = graph.getVertex(productId, authorizations);
 
             mapWorkProduct.updateVertices(ctx, productVertex, updateVertices, visibilityTranslator.getDefaultVisibility());
         } catch(Exception e) {
-            throw new RuntimeException(e);
+            throw new VisalloException("Could not update vertices in product: " + productId);
         }
 
         Workspace workspace = workspaceRepository.findById(workspaceId, user);
@@ -97,6 +98,6 @@ public class UpdateVertices implements ParameterizedHandler {
 
         workQueueRepository.broadcastWorkProductChange(productId, clientApiWorkspace, user, sourceGuid);
 
-        response.respondWithSuccessJson();
+        return VisalloResponse.SUCCESS;
     }
 }

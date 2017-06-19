@@ -27,7 +27,6 @@ import org.visallo.web.clientapi.model.GraphPosition;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.visallo.web.product.graph.GraphProductOntology.ENTITY_POSITION;
@@ -63,43 +62,60 @@ public class GraphWorkProduct extends WorkProductElements {
             Authorizations authorizations
     ) {
         JSONObject extendedData = new JSONObject();
-        String id = productVertex.getId();
 
         if (params.optBoolean("includeVertices")) {
-            trimCompoundNodes(graph, productVertex);
+            JSONObject nodes = getNodes(graph, productVertex, authorizations);
 
-            JSONObject vertices = new JSONObject();
-            JSONObject compoundNodes = new JSONObject();
+            extendedData.put("vertices", nodes.get("vertices"));
+            extendedData.put("compoundNodes", nodes.get("compoundNodes"));
+        }
 
-            List<Edge> productVertexEdges = Lists.newArrayList(productVertex.getEdges(
-                    Direction.OUT,
-                    WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                    authorizations
-            ));
+        if (params.optBoolean("includeEdges")) {
+            extendedData.put("edges", getEdges(graph, productVertex, user, authorizations));
+        }
 
-            List<String> ids = productVertexEdges.stream()
-                    .map(edge -> edge.getOtherVertexId(id))
-                    .collect(Collectors.toList());
-            Map<String, Vertex> othersById = StreamUtil.stream(graph.getVertices(ids, FetchHint.NONE, authorizations))
-                    .collect(Collectors.toMap(Vertex::getId, Function.identity()));
+        return extendedData;
+    }
 
-            for (Edge propertyVertexEdge : productVertexEdges) {
-                String otherId = propertyVertexEdge.getOtherVertexId(id);
-                JSONObject vertexOrNode = new JSONObject();
-                vertexOrNode.put("id", otherId);
-                if (!othersById.containsKey(otherId)) {
-                    vertexOrNode.put("unauthorized", true);
-                }
-                setEdgeJson(propertyVertexEdge, vertexOrNode);
-                if (vertexOrNode.getString("type").equals("vertex")) {
-                    vertices.put(otherId, vertexOrNode);
-                } else {
-                    compoundNodes.put(otherId, vertexOrNode);
-                }
+    private JSONObject getNodes(
+            Graph graph,
+            Vertex productVertex,
+            Authorizations authorizations
+    ) {
+        JSONObject nodes = new JSONObject();
+        JSONObject vertices = new JSONObject();
+        JSONObject compoundNodes = new JSONObject();
+
+        trimCompoundNodes(graph, productVertex);
+
+        List<Edge> productVertexEdges = Lists.newArrayList(productVertex.getEdges(
+                Direction.OUT,
+                WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
+                authorizations
+        ));
+
+        List<String> ids = productVertexEdges.stream()
+                .map(edge -> edge.getOtherVertexId(productVertex.getId()))
+                .collect(Collectors.toList());
+        Map<String, Boolean> othersById = graph.doVerticesExist(ids, authorizations);
+
+        for (Edge propertyVertexEdge : productVertexEdges) {
+            String otherId = propertyVertexEdge.getOtherVertexId(productVertex.getId());
+            JSONObject vertexOrNode = new JSONObject();
+            vertexOrNode.put("id", otherId);
+            if (!othersById.getOrDefault(otherId, false)) {
+                vertexOrNode.put("unauthorized", true);
             }
+            setEdgeJson(propertyVertexEdge, vertexOrNode);
+            if (vertexOrNode.getString("type").equals("vertex")) {
+                vertices.put(otherId, vertexOrNode);
+            } else {
+                compoundNodes.put(otherId, vertexOrNode);
+            }
+        }
 
-            if (compoundNodes.length() > 0) {
-                JSONUtil.streamKeys(compoundNodes)
+        if (compoundNodes.length() > 0) {
+            JSONUtil.streamKeys(compoundNodes)
                     .forEach(compoundNodeId -> {
                         JSONObject compoundNode = compoundNodes.getJSONObject(compoundNodeId);
                         ArrayDeque<JSONObject> childrenDFS = Queues.newArrayDeque();
@@ -127,47 +143,52 @@ public class GraphWorkProduct extends WorkProductElements {
 
                         compoundNode.put("visible", visible);
                     });
-            }
-
-            extendedData.put("vertices", vertices);
-            extendedData.put("compoundNodes", compoundNodes);
         }
 
-        if (params.optBoolean("includeEdges")) {
-            JSONObject edges = new JSONObject();
-            Authorizations systemAuthorizations = authorizationRepository.getGraphAuthorizations(
-                    user,
-                    VisalloVisibility.SUPER_USER_VISIBILITY_STRING
-            );
-            Iterable<Vertex> productVertices = Lists.newArrayList(productVertex.getVertices(
-                    Direction.OUT,
-                    WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                    systemAuthorizations
-            ));
-            Iterable<RelatedEdge> productRelatedEdges = graph.findRelatedEdgeSummaryForVertices(productVertices, authorizations);
-            List<String> ids = StreamUtil.stream(productRelatedEdges)
-                    .map(RelatedEdge::getEdgeId)
-                    .collect(Collectors.toList());
-            Map<String, Boolean> relatedEdgesById = graph.doEdgesExist(ids, authorizations);
+        nodes.put("vertices", vertices);
+        nodes.put("compoundNodes", compoundNodes);
 
-            for (RelatedEdge relatedEdge : productRelatedEdges) {
-                String edgeId = relatedEdge.getEdgeId();
-                JSONObject edge = new JSONObject();
-                edge.put("edgeId", relatedEdge.getEdgeId());
+        return nodes;
+    }
 
-                if (relatedEdgesById.get(edgeId)) {
-                    edge.put("label", relatedEdge.getLabel());
-                    edge.put("outVertexId", relatedEdge.getOutVertexId());
-                    edge.put("inVertexId", relatedEdge.getInVertexId());
-                } else {
-                    edge.put("unauthorized", true);
-                }
-                edges.put(edgeId, edge);
+    private JSONObject getEdges(
+            Graph graph,
+            Vertex productVertex,
+            User user,
+            Authorizations authorizations
+    ) {
+        JSONObject edges = new JSONObject();
+        Authorizations systemAuthorizations = authorizationRepository.getGraphAuthorizations(
+                user,
+                VisalloVisibility.SUPER_USER_VISIBILITY_STRING
+        );
+        Iterable<Vertex> productVertices = Lists.newArrayList(productVertex.getVertices(
+                Direction.OUT,
+                WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
+                systemAuthorizations
+        ));
+        Iterable<RelatedEdge> productRelatedEdges = graph.findRelatedEdgeSummaryForVertices(productVertices, authorizations);
+        List<String> ids = StreamUtil.stream(productRelatedEdges)
+                .map(RelatedEdge::getEdgeId)
+                .collect(Collectors.toList());
+        Map<String, Boolean> relatedEdgesById = graph.doEdgesExist(ids, authorizations);
+
+        for (RelatedEdge relatedEdge : productRelatedEdges) {
+            String edgeId = relatedEdge.getEdgeId();
+            JSONObject edge = new JSONObject();
+            edge.put("edgeId", relatedEdge.getEdgeId());
+
+            if (relatedEdgesById.get(edgeId)) {
+                edge.put("label", relatedEdge.getLabel());
+                edge.put("outVertexId", relatedEdge.getOutVertexId());
+                edge.put("inVertexId", relatedEdge.getInVertexId());
+            } else {
+                edge.put("unauthorized", true);
             }
-            extendedData.put("edges", edges);
+            edges.put(edgeId, edge);
         }
 
-        return extendedData;
+        return edges;
     }
 
     private void trimCompoundNodes(Graph graph, Vertex productVertex) {
@@ -185,17 +206,16 @@ public class GraphWorkProduct extends WorkProductElements {
         List<String> ids = productVertexEdges.stream()
                 .map(edge -> edge.getOtherVertexId(id))
                 .collect(Collectors.toList());
-        Map<String, Vertex> othersById = StreamUtil.stream(graph.getVertices(ids, FetchHint.NONE, authorizations))
-                .collect(Collectors.toMap(Vertex::getId, Function.identity()));
+        Map<String, Boolean> othersById = graph.doVerticesExist(ids, authorizations);
 
-        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, systemUser, authorizations)) {
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.HIGH, systemUser, authorizations)) {
             for (Edge propertyVertexEdge : productVertexEdges) {
                 String otherId = propertyVertexEdge.getOtherVertexId(id);
-                if (!othersById.containsKey(otherId)) {
+                if (!othersById.getOrDefault(otherId, false)) {
                     removeChild(ctx, productVertex, otherId, id, visibility, authorizations);
                 }
             }
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             throw new RuntimeException("Could not clean compound Nodes", ex);
         }
 
@@ -264,8 +284,8 @@ public class GraphWorkProduct extends WorkProductElements {
             json.put("visible", true);
             setEdgeJson(ctx.getGraph().getEdge(edgeId, authorizations), json);
             return json;
-        }catch(Exception ex){
-            throw new VisalloException("Could not add compound node",ex);
+        } catch (Exception ex) {
+            throw new VisalloException("Could not add compound node", ex);
         }
     }
 
@@ -360,7 +380,9 @@ public class GraphWorkProduct extends WorkProductElements {
             Visibility visibility,
             Authorizations authorizations
     ) {
-        if (parentId.equals(ROOT_NODE_ID)) return;
+        if (parentId.equals(ROOT_NODE_ID)) {
+            return;
+        }
 
         String parentEdgeId = getEdgeId(productVertex.getId(), parentId);
         Edge parentProductVertexEdge = ctx.getGraph().getEdge(parentEdgeId, authorizations);
@@ -402,7 +424,9 @@ public class GraphWorkProduct extends WorkProductElements {
             Visibility visibility,
             Authorizations authorizations
     ) {
-        if (parentId.equals(ROOT_NODE_ID)) return;
+        if (parentId.equals(ROOT_NODE_ID)) {
+            return;
+        }
 
         String edgeId = getEdgeId(productVertex.getId(), parentId);
         Edge productVertexEdge = ctx.getGraph().getEdge(edgeId, authorizations);

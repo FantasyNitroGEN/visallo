@@ -10,6 +10,7 @@ import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.visallo.core.exception.VisalloAccessDeniedException;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -66,7 +67,7 @@ public class CollapseVertices implements ParameterizedHandler {
             @SourceGuid String sourceGuid,
             User user
     ) throws Exception {
-        JSONObject params = paramsStr == null ? new JSONObject() : new JSONObject(paramsStr);
+        JSONObject params = new JSONObject(paramsStr);
         JSONObject nodeJson;
 
         if (!workspaceRepository.hasWritePermissions(workspaceId, user)) {
@@ -83,7 +84,7 @@ public class CollapseVertices implements ParameterizedHandler {
                 workspaceId
         );
 
-        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.HIGH, user, authorizations)) {
             GraphWorkProduct graphWorkProduct = new GraphWorkProduct(ontologyRepository, authorizationRepository, graphRepository, userRepository);
             Vertex productVertex = graph.getVertex(productId, authorizations);
 
@@ -91,7 +92,7 @@ public class CollapseVertices implements ParameterizedHandler {
 
             nodeJson = graphWorkProduct.addCompoundNode(ctx, productVertex, params, user, WorkspaceRepository.VISIBILITY.getVisibility(), authorizations);
         } catch(Exception e) {
-            throw new RuntimeException(e);
+            throw new VisalloException("Could not collapse vertices in product: " + productId);
         }
 
         Workspace workspace = workspaceRepository.findById(workspaceId, user);

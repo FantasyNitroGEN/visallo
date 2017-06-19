@@ -404,7 +404,7 @@ define([
                 panelPadding = state.panel.padding,
                 ghosts = state['org-visallo-graph'].animatingGhosts,
                 uiPreferences = state.user.current.uiPreferences,
-                rootId = productSelectors.getProduct(state).localData.rootId || 'root';
+                rootId = props.product.localData && props.product.localData.rootId || 'root';
 
             return {
                 ...props,
