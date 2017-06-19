@@ -19,6 +19,7 @@ define([
             return _.isString(displayName) ? displayName : defaultValue;
         },
         render() {
+            const { conceptId } = this.props;
             const value = this.getValue();
             const disabled = _.isEmpty(value);
             return (
@@ -27,14 +28,12 @@ define([
                         onChange={this.onDisplayNameChange}
                         value={value} />
 
-                    <label>Concept</label>
-                    { /* TODO limit to current concept's hierarchy */ }
                     <ConceptsSelector
                         value={this.state.domain}
                         creatable={false}
+                        filter={conceptId ? { conceptId, showAncestors: true } : null}
                         onSelected={this.onConceptSelected} />
 
-                    <label>Type</label>
                     <select value={this.state.type} onChange={this.handleTypeChange}>
                         <option value="string">String</option>
                         <option value="integer">Integer</option>
@@ -49,6 +48,10 @@ define([
                     </select>
 
                     <div style={{textAlign: 'right'}}>
+                    <button
+                        onClick={this.props.onCancel}
+                        className="btn btn-link btn-small"
+                        style={{ width: 'auto', marginBottom: '1em'}}>Cancel</button>
                     <button
                         disabled={disabled}
                         onClick={this.onCreate}

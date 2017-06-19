@@ -15,7 +15,7 @@ define([
     defineComponent,
     withDropdown,
     template,
-    FieldSelection,
+    PropertySelector,
     alertTemplate,
     withTeardown,
     VertexSelector,
@@ -108,28 +108,25 @@ define([
         });
 
         this.setupPropertySelectionField = function() {
-            let ontologyRequest;
-
-            if (F.vertex.isEdge(this.attr.data)) {
-                ontologyRequest = this.dataRequest('ontology', 'propertiesByRelationship', this.attr.data.label);
-            } else {
-                ontologyRequest = this.dataRequest('ontology', 'propertiesByConceptId',
-                    F.vertex.prop(this.attr.data, 'conceptType'));
+            const { label, conceptType } = this.attr.data;
+            const filter = { addable: true };
+            if (label) {
+                filter.relationshipId = label
+            } else if (conceptType) {
+                filter.conceptId = conceptType;
             }
 
-            Promise.all([
-                ontologyRequest,
-                acl.getPropertyAcls(this.attr.data)
-            ]).spread((ontologyProperties, propertyAcls) => {
-                FieldSelection.attachTo(this.select('propertyListSelector'), {
-                    properties: ontologyProperties.list,
-                    focus: true,
-                    placeholder: i18n('property.form.field.selection.placeholder'),
-                    unsupportedProperties: _.pluck(_.where(propertyAcls, {addable: false}), 'name')
-                });
-
-                this.manualOpen();
+            PropertySelector.attachTo(this.select('propertyListSelector'), {
+                filter: {
+                    conceptId: this.attr.data.conceptType,
+                    relationshipId: this.attr.data.label,
+                    addable: true
+                },
+                focus: true,
+                placeholder: i18n('property.form.field.selection.placeholder')
             });
+
+            this.manualOpen();
         };
 
         this.onVertexSelected = function(event, data) {

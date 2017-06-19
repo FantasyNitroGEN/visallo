@@ -146,6 +146,18 @@ define(['reselect'], function(reselect) {
 
     const getOntology = createSelector([getOntologyRoot, getWorkspace], (ontology, workspaceId) => ontology[workspaceId])
 
+    const getPropertiesByConcept = createSelector([getConcepts, getProperties], (concepts, properties) => {
+        return _.mapObject(concepts, r => {
+            return _.pick(properties, r.properties);
+        })
+    })
+
+    const getPropertiesByRelationship = createSelector([getRelationships, getProperties], (relationships, properties) => {
+        return _.mapObject(relationships, r => {
+            return _.pick(properties, r.properties);
+        })
+    })
+
     const getVisibleProperties = createSelector([getProperties], properties => {
         const compareNameAndGroup = ({ displayName, propertyGroup }) => {
             const displayNameLC = displayName.toLowerCase();
@@ -193,6 +205,8 @@ define(['reselect'], function(reselect) {
 
         getProperties,
         getPropertyKeyIris,
+        getPropertiesByConcept,
+        getPropertiesByRelationship,
         getVisibleProperties,
         getVisiblePropertiesWithHeaders,
 

@@ -37,6 +37,9 @@ define([
         });
 
         this.after('initialize', function() {
+            if ('properties' in this.attr) {
+                throw new Error('Properties no longer supported as attribute. Use new filter attribute');
+            }
             this.on('filterProperties', function() {
                 console.log(event.type, this.attacher);
             });
@@ -44,6 +47,7 @@ define([
             this.attacher = attacher()
                 .node(this.node)
                 .params({
+                    filter: this.attr.filter,
                     autofocus: this.attr.focus === true
                 })
                 .behavior({
