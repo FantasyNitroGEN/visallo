@@ -186,7 +186,7 @@ public class InMemoryConcept extends Concept {
             } else {
                 this.deleteable = Boolean.parseBoolean((String) value);
             }
-        } else {
+        } else if (value != null){
             metadata.put(name, value.toString());
         }
     }
