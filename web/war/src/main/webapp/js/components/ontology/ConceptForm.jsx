@@ -18,6 +18,7 @@ define([
             return _.isString(displayName) ? displayName : defaultValue;
         },
         render() {
+            const { color } = this.state;
             const value = this.getValue();
             const disabled = _.isEmpty(value);
             return (
@@ -33,7 +34,7 @@ define([
                         creatable={false}
                         onSelected={this.onConceptSelected} />
 
-                    <ColorSelector onSelected={this.onColorSelected} />
+                    <ColorSelector value={color} onSelected={this.onColorSelected} />
                     <GlyphSelector search={value} onSelected={this.onIconSelected} />
 
                     <div style={{textAlign: 'right'}}>
@@ -59,17 +60,24 @@ define([
             this.setState({ imgSrc })
         },
         onConceptSelected(option) {
-            this.setState({ parentConcept: option ? option.title : null })
+            const newState = { parentConcept: null, color: null };
+            if (option) {
+                newState.color = option.color;
+                newState.parentConcept = option.title;
+            }
+
+            this.setState(newState);
         },
         onDisplayNameChange(event) {
             this.setState({ displayName: event.target.value })
         },
         onCreate() {
+            const { parentConcept, color, imgSrc } = this.state;
             this.props.onCreate({
-                parentConcept: this.state.parentConcept,
+                parentConcept: parentConcept,
                 displayName: this.getValue(),
-                glyphIconHref: this.state.imgSrc,
-                color: this.state.color || 'rgb(0,0,0)'
+                glyphIconHref: imgSrc,
+                color: color || 'rgb(0,0,0)'
             })
         }
     });

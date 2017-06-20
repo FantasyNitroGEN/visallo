@@ -3,48 +3,52 @@ define([
     'colorjs'
 ], function(React, colorjs) {
 
+    const BLACK = 'rgb(0,0,0)';
     const saturation = 0.7;
     const lightness = 0.5;
+    const shades = [
+        { s: 21, v: 'Red' },
+        { s: 52, v: 'Orange' },
+        { s: 68, v: 'Yellow' },
+        { s: 154, v: 'Green' },
+        { s: 190, v: 'Teal' },
+        { s: 249, v: 'Blue' },
+        { s: 290, v: 'Purple' },
+        { s: 330, v: 'Pink' },
+        { s: 361, v: 'Red' }
+    ];
     const PropTypes = React.PropTypes;
     const ColorSelector = React.createClass({
         propTypes: {
-            value: PropTypes.shape({
-                black: PropTypes.bool,
-                hue: PropTypes.number
-            }),
-            onSelected: PropTypes.func.isRequired
+            onSelected: PropTypes.func.isRequired,
+            value: PropTypes.string
         },
         getDefaultProps() {
-            return { value: { black: true, hue: 360 / 2 } };
+            return { value: BLACK };
         },
         getInitialState() {
-            return {};
+            return { value: this.props.value };
         },
         componentDidMount() {
             this.publish = _.debounce(this._publish, 100);
         },
+        componentWillReceiveProps(nextProps) {
+            if (this.state.value !== nextProps.value) {
+                this.setState({ value: nextProps.value || BLACK })
+            }
+        },
         render() {
             const { value, colorTooltip } = this.state;
-            const { black, hue } = value || this.props.value;
-            const color = { hue, saturation, lightness };
-
+            const black = this.isBlack();
+            const color = colorjs(value);
+            const hue = color.getHue();
             const style = black ? '' : `
                 .color-selector input[type=range]::-webkit-slider-thumb {
-                    background: ${`hsl(${color.hue}, ${color.saturation * 100}%, ${color.lightness * 100}%)`};
+                    background: ${`hsl(${hue}, ${saturation * 100}%, ${lightness * 100}%)`};
                 }`;
             const percent = hue / 360;
-            const shades = [
-                { s: 21, v: 'Red' },
-                { s: 52, v: 'Orange' },
-                { s: 68, v: 'Yellow' },
-                { s: 154, v: 'Green' },
-                { s: 190, v: 'Teal' },
-                { s: 249, v: 'Blue' },
-                { s: 290, v: 'Purple' },
-                { s: 330, v: 'Pink' },
-                { s: 361, v: 'Red' }
-            ];
             const shade = black ? '' : _.find(shades, s => hue < s.s).v;
+
             return (
                 <div className={`color-selector ${black ? 'black' : ''}`} style={{ display: 'flex' }}>
                     <div title="Set to Black" className="black">
@@ -52,7 +56,7 @@ define([
                     </div>
                     <div title="Set to Color" className="gradient" style={{position: 'relative'}}>
                         <style>{style}</style>
-                        <input data-color="Color" value={hue} min="0" max="360" step="1" onChange={this.onChange} type="range" />
+                        <input data-color="Color" value={hue} min="0" max="359" step="1" onChange={this.onChange} type="range" />
                         { black || !colorTooltip ? null : (
                             <div className="tooltip bottom" style={{
                                 opacity: 1,
@@ -69,15 +73,17 @@ define([
                 </div>
             )
         },
+        isBlack() {
+            return this.state.value === BLACK;
+        },
         onMouseDown() {
-            if (!(this.state.value || this.props.value).black) {
-                const value = { black: true }
-                this.update(value);
+            if (!this.isBlack()) {
+                this.update(BLACK);
             }
         },
         onChange(event) {
-            const value = { black: false, hue: event.target.value };
-            this.update(value);
+            const color = colorjs({ hue: event.target.value, saturation, lightness }).toCSSHex();
+            this.update(color);
             clearTimeout(this._hideTooltip);
             if (!this.state.colorTooltip) {
                 this.setState({ colorTooltip: true })
@@ -91,11 +97,7 @@ define([
             this.publish(newValue);
         },
         _publish(newValue) {
-            var color = 'rgb(0,0,0)';
-            if (!newValue.black) {
-                color = colorjs({ hue: +newValue.hue, saturation, lightness }).toCSSHex();
-            }
-            this.props.onSelected(color);
+            this.props.onSelected(newValue);
         }
     });
 

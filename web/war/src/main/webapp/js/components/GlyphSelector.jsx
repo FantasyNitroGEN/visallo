@@ -80,14 +80,14 @@ define([
                 title={option.label}>
             <div className="icon" style={{
                 position: 'absolute',
-                left: '7px',
-                top: '4px',
+                left: '9px',
+                top: '50%',
                 backgroundImage: 'url(imgc/sprites/glyphicons.png)',
                 backgroundPosition: option.backgroundPosition,
                 backgroundSize: option.backgroundSize,
                 width: option.width,
                 height: option.height,
-                transform: `scale(${option.scale})`,
+                transform: `scale(${option.scale}) translate(0, -50%)`,
                 transformOrigin: '0 0',
                 margin: '0'
             }}></div>{option.label}</div>
