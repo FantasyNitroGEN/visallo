@@ -820,14 +820,14 @@ define([
                     visalloData.storePromise,
                     Promise.require('data/web-worker/store/panel/actions')
                 ]).spread((store, actions) => {
-                    this._updateStorePadding = function(padding) {
+                    this._updateStorePadding = _.debounce(function(padding) {
                         store.dispatch(actions.setPadding({
                             top: padding.t,
                             right: padding.r,
                             bottom: padding.b,
                             left: padding.l
                         }))
-                    }
+                    }, 250);
                 })
             }
         };
@@ -895,7 +895,7 @@ define([
                     width = minWidth;
                 }
                 const maxWidth = $pane.resizable('option', 'maxWidth');
-                if (maxWidth && width < maxWidth) {
+                if (maxWidth && width > maxWidth) {
                     width = maxWidth;
                 }
                 $pane.width(width);
