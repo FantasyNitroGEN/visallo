@@ -1,84 +1,3 @@
-@import "../../libs/react-select/dist/react-select.css";
-@import "../../libs/react-virtualized-select/styles.css";
-
-/* TODO: move to autocomplete less */
-.Select {
-  margin-bottom: 0.7em;
-  &.is-focused .Select-control,
-  &.is-focused .Select-control:hover {
-    border-color: rgba(82, 168, 236, 0.8);
-    .box-shadow(~"inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6)");
-  }
-  &.is-focused:not(.is-open) > .Select-control { border-color: none }
-  .Select-control {
-    height: 2em;
-    &:hover {
-      .box-shadow(none);
-    }
-  }
-  .Select-placeholder {
-    line-height: 2em;
-    padding-left: 0.4em;
-    color: #999;
-  }
-  .Select-value {
-    line-height: 2em !important;
-    padding: 0 6px !important;
-  }
-  .Select-value-label {
-    line-height: 2em;
-  }
-  .Select-input {
-    height: 2em;
-    padding: 0 6px;
-    input {
-      line-height: 2em;
-      padding: 0;
-    }
-  }
-  .Select-create-option-placeholder {
-    color: #666;
-    font-style: italic;
-    &.VirtualizedSelectFocusedOption {
-      color: white;
-    }
-  }
-  .divider {
-    height: 1px;
-    margin: 9px 1px;
-    overflow: hidden;
-    background-color: blue;
-    border-bottom: 1px solid #fff;
-  }
-}
-.VirtualizedSelectOption {
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  .icon {
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: auto 80%;
-    height: 15px;
-    margin: -2px 5px 0 3px;
-    width: 15px;
-  }
-}
-.VirtualizedSelectFocusedOption {
-  background-color: @blue-color;
-  color: white;
-  .icon {
-    filter: invert(100%);
-  }
-}
-.VirtualizedSelectHeader {
-  cursor: default;
-  color: #999;
-  text-transform: uppercase;
-  font-size: 11px;
-  font-weight: bold;
-}
 
 input { .box-shadow(none); }
 
@@ -90,7 +9,6 @@ input { .box-shadow(none); }
   top: @padding;
   margin-right: @padding;
   opacity: 0.9;
-  .transition(transform 0.1s ease-out);
   z-index: @graph-zIndex;
 
   @bg: #929292;
@@ -283,3 +201,4 @@ input { .box-shadow(none); }
 
 @import "controls/segmented";
 @import "controls/colors";
+@import "controls/typeahead";
