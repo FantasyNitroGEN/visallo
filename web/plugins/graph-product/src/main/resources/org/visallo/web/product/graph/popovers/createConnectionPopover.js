@@ -70,8 +70,7 @@ define([
         };
 
         this.updateRelationshipLabels = function() {
-            var self = this,
-                button = this.select('connectButtonSelector');
+            var button = this.select('connectButtonSelector');
 
             button.text(i18n('org.visallo.web.product.graph.connection.button.connect')).attr('disabled', true);
 

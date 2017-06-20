@@ -389,7 +389,8 @@ define([
 
         (state, props) => {
             var pixelRatio = state.screen.pixelRatio,
-                ontology = ontologySelectors.getOntology(state),
+                concepts = ontologySelectors.getConcepts(state), // Used in F.vertex.image
+                relationships = ontologySelectors.getRelationships(state),
                 panelPadding = state.panel.padding,
                 ghosts = state['org-visallo-graph'].animatingGhosts,
                 uiPreferences = state.user.current.uiPreferences,
@@ -403,7 +404,8 @@ define([
                 ghosts,
                 pixelRatio,
                 uiPreferences,
-                ontology,
+                concepts,
+                relationships,
                 panelPadding,
                 productElementIds: productSelectors.getElementIdsInProduct(state),
                 elements: productSelectors.getElementsInProduct(state),

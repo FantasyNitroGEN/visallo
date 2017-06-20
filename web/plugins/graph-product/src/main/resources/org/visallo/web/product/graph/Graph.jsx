@@ -31,8 +31,8 @@ define([
     const isGhost = cyElement => cyElement && cyElement._private && cyElement._private.data && cyElement._private.data.animateTo;
     const isValidElement = cyElement => cyElement && cyElement.is('.v,.e,.partial') && !isGhost(cyElement);
     const isValidNode = cyElement => cyElement && cyElement.is('node.v,node.partial') && !isGhost(cyElement);
-    const edgeDisplay = (label, ontology, edges) => {
-        const display = label in ontology.relationships ? ontology.relationships[label].displayName : '';
+    const edgeDisplay = (label, ontologyRelationships, edges) => {
+        const display = label in ontologyRelationships ? ontologyRelationships[label].displayName : '';
         const showNum = edges.length > 1;
         const num = showNum ? ` (${F.number.pretty(edges.length)})` : '';
         return display + num;
@@ -41,7 +41,14 @@ define([
     const propTypesElementObjects = { vertices: PropTypes.object, edges: PropTypes.object };
 
     let memoizeForStorage = {};
-    const memoizeClear = () => { memoizeForStorage = {}; }
+    const memoizeClear = (...prefixes) => {
+        if (prefixes.length) {
+            memoizeForStorage = _.omit(memoizeForStorage, (v, k) =>
+                _.any(prefixes, prefix => k.indexOf(prefix) === 0));
+        } else {
+            memoizeForStorage = {};
+        }
+    }
     const memoizeFor = function(key, elements, fn, idFn) {
         if (!key) throw new Error('Cache key must be specified');
         if (!elements) throw new Error('Valid elements should be provided');
@@ -175,6 +182,10 @@ define([
             }
             if (nextProps.registry !== this.props.registry) {
                 memoizeClear();
+            }
+            if (nextProps.concepts !== this.props.concepts ||
+                nextProps.relationships !== this.props.relationships) {
+                memoizeClear('vertexToCyNode');
             }
             if (nextProps.product.id === this.props.product.id) {
                 this.setState({ viewport: {}, initialProductDisplay: false })
@@ -660,7 +671,7 @@ define([
         },
 
         mapPropsToElements(editable) {
-            const { selection, ghosts, productElementIds, elements, ontology, registry, focusing } = this.props;
+            const { selection, ghosts, productElementIds, elements, relationships, registry, focusing } = this.props;
             const { hovering } = this.state;
             const { vertices: productVertices, edges: productEdges } = productElementIds;
             const { vertices, edges } = elements;
@@ -781,7 +792,7 @@ define([
                 .map((edgeInfos, id) => {
                     const edgesForInfos = Object.values(_.pick(edges, _.pluck(edgeInfos, 'edgeId')));
                     return {
-                        data: mapEdgeToData(id, edgeInfos, edgesForInfos, ontology, registry['org.visallo.graph.edge.transformer']),
+                        data: mapEdgeToData(id, edgeInfos, edgesForInfos, relationships, registry['org.visallo.graph.edge.transformer']),
                         classes: mapEdgeToClasses(edgeInfos, edgesForInfos, focusing, registry['org.visallo.graph.edge.class']),
                         selected: _.any(edgeInfos, e => e.edgeId in edgesSelectedById)
                     }
@@ -881,7 +892,7 @@ define([
     });
 
 
-    const mapEdgeToData = (id, edgeInfos, edges, ontology, transformers) => {
+    const mapEdgeToData = (id, edgeInfos, edges, ontologyRelationships, transformers) => {
         return memoizeFor('org.visallo.graph.edge.transformer', edges, () => {
             const { inVertexId, outVertexId, label } = edgeInfos[0];
             const base = {
@@ -889,7 +900,7 @@ define([
                 source: outVertexId,
                 target: inVertexId,
                 type: label,
-                label: edgeDisplay(label, ontology, edgeInfos),
+                label: edgeDisplay(label, ontologyRelationships, edgeInfos),
                 edgeInfos,
                 edges
             };

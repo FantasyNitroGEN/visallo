@@ -38,7 +38,7 @@ define([
 
         this.after('initialize', function() {
             if ('properties' in this.attr) {
-                throw new Error('Properties no longer supported as attribute. Use new filter attribute');
+                console.warn('Attribute `properties` no longer used. Use new filter attribute');
             }
             this.on('filterProperties', function() {
                 console.log(event.type, this.attacher);

@@ -1,6 +1,7 @@
 define(['../actions', '../../util/ajax'], function(actions, ajax) {
     actions.protectFromMain();
 
+    const anyNotEmpty = ({ conceptIds, relationshipIds, propertyIds }) => _.any([conceptIds, relationshipIds, propertyIds], l => !_.isEmpty(l))
     const add = (type, listName) => ({ workspaceId, key, ...rest }) => dispatch => {
         const obj = rest[type];
         return ajax('POST', `/ontology/${type}`, { workspaceId, ...obj })
@@ -35,6 +36,13 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
             payload
         }),
 
+        invalidate: ({ workspaceIds }) => ({
+            type: 'ONTOLOGY_INVALIDATE',
+            payload: {
+                workspaceIds
+            }
+        }),
+
         partial: ({ workspaceId, ...ontology }) => (dispatch, getState) => {
             if (!workspaceId) {
                 workspaceId = getState().workspace.currentId;
@@ -63,22 +71,37 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
         ontologyChange: ({ workspaceId, conceptIds, relationshipIds, propertyIds }) => (dispatch, getState) => {
             const state = getState();
             const isPublishedChanged = !workspaceId;
+            const ids = { conceptIds, relationshipIds, propertyIds };
+            const hasIds = anyNotEmpty(ids)
+            const currentWorkspaceId = state.workspace.currentId;
+            const requestWithIds = (workspaceId, ontology) => {
+                return ajax('GET', '/ontology/segment', { workspaceId, ...ontology })
+                    .then(payload => {
+                        dispatch(api.partial({ workspaceId, ...payload }))
+                    })
+            }
 
             if (isPublishedChanged) {
-                // FIXME
-                // if (any ids given) {
-                //     all other ontology workspaces should clear and request the ids
-                // } else {
-                //     all other ontology clear and load current workspace {invalidate: true}
-                // }
+                let otherWorkspaces = Object.keys(state.ontology);
+                if (currentWorkspaceId) {
+                    otherWorkspaces = _.without(otherWorkspaces, currentWorkspaceId);
+                }
+                dispatch(api.invalidate({ workspaceIds: otherWorkspaces }));
+                if (currentWorkspaceId) {
+                    if (hasIds) {
+                        return requestWithIds(currentWorkspaceId, ids);
+                    } else {
+                        dispatch(api.get({ currentWorkspaceId, invalidate: true }));
+                    }
+                }
             } else {
-                const workspaceInStore = workspaceId in state.workspace.byId;
+                const workspaceInStore = workspaceId in state.ontology;
                 if (workspaceInStore) {
-                    // FIXME if no ids, just dispatch get with invalidate: true
-                    return ajax('GET', '/ontology/segment', { conceptIds, relationshipIds, propertyIds })
-                        .then(payload => {
-                            dispatch(api.partial({ workspaceId, ...payload }))
-                        })
+                    if (hasIds) {
+                        return requestWithIds(workspaceId, ids);
+                    } else {
+                        dispatch(api.get({ workspaceId, invalidate: true }))
+                    }
                 }
             }
         }
