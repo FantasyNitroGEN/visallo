@@ -65,8 +65,8 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     public static final String BASE_OWL_IRI = "http://visallo.org";
     public static final String COMMENT_OWL_IRI = "http://visallo.org/comment";
     public static final String RESOURCE_ENTITY_PNG = "entity.png";
+    public static final String TOP_OBJECT_PROPERTY_IRI = "http://www.w3.org/2002/07/owl#topObjectProperty";
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(OntologyRepositoryBase.class);
-    private static final String TOP_OBJECT_PROPERTY_IRI = "http://www.w3.org/2002/07/owl#topObjectProperty";
     private final Configuration configuration;
     private final LockRepository lockRepository;
 

@@ -37,6 +37,16 @@
         <rdfs:domain rdf:resource="http://visallo.org/testhierarchy#person"/>
     </owl:ObjectProperty>
 
+    <!-- http://visallo.org/testhierarchy#personReallyKnowsPerson -->
+
+    <owl:ObjectProperty rdf:about="http://visallo.org/testhierarchy#personReallyKnowsPerson">
+        <rdfs:subPropertyOf rdf:resource="http://visallo.org/testhierarchy#personKnowsPerson"/>
+        <rdfs:label xml:lang="en">Really Knows</rdfs:label>
+        <visallo:timeFormula xml:lang="en">prop(&apos;http://visallo.org/testhierarchy#firstMet&apos;) || &apos;&apos;</visallo:timeFormula>
+        <rdfs:range rdf:resource="http://visallo.org/testhierarchy#person"/>
+        <rdfs:domain rdf:resource="http://visallo.org/testhierarchy#person"/>
+    </owl:ObjectProperty>
+
     <!--
     ///////////////////////////////////////////////////////////////////////////////////////
     //

@@ -83,6 +83,18 @@ public abstract class OntologyRepositoryTestBase extends VisalloInMemoryTestBase
     }
 
     @Test
+    public void testRelationshipHierarchy() throws Exception {
+        loadHierarchyOwlFile();
+
+        Relationship relationship = getOntologyRepository().getRelationshipByIRI(TEST_HIERARCHY_IRI + "#personReallyKnowsPerson", null);
+        assertEquals(TEST_HIERARCHY_IRI + "#personKnowsPerson", relationship.getParentIRI());
+
+        relationship = getOntologyRepository().getParentRelationship(relationship, null);
+        assertEquals(TEST_HIERARCHY_IRI + "#personKnowsPerson", relationship.getIRI());
+        assertEquals(OntologyRepositoryBase.TOP_OBJECT_PROPERTY_IRI, relationship.getParentIRI());
+    }
+
+    @Test
     public void testDependenciesBetweenOntologyFilesShouldNotChangeParentProperties() throws Exception {
         loadTestOwlFile();
         File changedOwl = new File(OntologyRepositoryTestBase.class.getResource(TEST01_OWL).toURI());
