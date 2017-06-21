@@ -57,6 +57,7 @@ define([
                 filter,
                 privileges, creatable, ...rest } = this.props;
             const formProps = { ...(filter || {}) };
+            const dependentPropertyIris = [];
             let options = properties.filter((p, i, list) => {
                 if (p.header) {
                     return true;
@@ -73,15 +74,26 @@ define([
                     const relationshipProp = relationshipProps && relationshipProps[p.title];
                     test = test && Boolean(relationshipProp);
                 }
+                if (filter && filter.rollupCompound && p.dependentPropertyIris) {
+                    dependentPropertyIris.push(...p.dependentPropertyIris);
+                }
                 FilterProps.forEach(fp => {
                     if (filter && fp in filter) {
-                        test = test && p[fp] === filter[fp];
+                        // otherwise any value is valid
+                        if (filter[fp] !== undefined && filter[fp] !== null) {
+                            test = test && p[fp] === filter[fp];
+                        }
                     } else if (fp in FilterPropDefaults) {
                         test = test && p[fp] === FilterPropDefaults[fp];
                     }
                 })
                 return test;
             });
+
+            if (filter && filter.rollupCompound) {
+                const uniqueIris = _.object(dependentPropertyIris.map(iri => [iri, true]))
+                options = options.filter(o => !uniqueIris[o.title]);
+            }
 
             removeEmptyHeaders(options)
 

@@ -64,7 +64,7 @@ define(['reselect'], function(reselect) {
         const concepts = ontology[workspaceId].concepts;
         const fn = _collectParents(concepts, {
             parentKey: 'parentConcept',
-            extraKeys: ['color', 'glyphIconHref', 'glyphIconSelectedHref'],
+            extraKeys: ['color', 'glyphIconHref', 'glyphIconSelectedHref', 'titleFormula', 'subtitleFormula', 'timeFormula'],
             defaults: { glyphIconHref: 'img/glyphicons/glyphicons_194_circle_question_mark@2x.png' }
         });
         return _.mapObject(concepts, c => {

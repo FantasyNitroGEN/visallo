@@ -44,11 +44,28 @@ define([
                 console.log(event.type, this.attacher);
             });
 
+            const {
+                filter = {},
+                rollupCompound = true,
+                focus,
+                placeholder,
+                onlySearchable,
+                showAdminConcepts
+            } = this.attr;
+
+            if (onlySearchable === true) {
+                filter.searchable = true;
+            }
+            if (showAdminConcepts === true) {
+                filter.userVisible = undefined;
+            }
+
             this.attacher = attacher()
                 .node(this.node)
                 .params({
-                    filter: this.attr.filter,
-                    autofocus: this.attr.focus === true
+                    filter: { ...filter, rollupCompound },
+                    autofocus: focus === true,
+                    placeholder
                 })
                 .behavior({
                     onSelected: (attacher, property) => {
