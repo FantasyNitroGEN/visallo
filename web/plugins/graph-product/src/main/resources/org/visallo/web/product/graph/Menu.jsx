@@ -79,7 +79,7 @@ define([
                     <ul className="dropdown-menu">
                         <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["circle", {}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.circle')}</a></li>
                         <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["bettergrid", {}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.grid')}</a></li>
-                        <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["breadthfirst", {}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.hierarchical')}</a></li>
+                        <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["dagre", {}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.hierarchical')}</a></li>
                         <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["cose", {}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.force_directed')}</a></li>
                         {this.renderLayoutExtensions(false)}
                     </ul>
