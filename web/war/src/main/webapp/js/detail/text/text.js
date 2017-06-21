@@ -580,7 +580,7 @@ define([
                     self.off('open')
                     self.on('open', function(event) {
                         event.stopPropagation();
-                        self.trigger('selectObjects', { vertexIds: $target.data('info').resolvedToVertexId });
+                        self.trigger('selectObjects', { vertexIds: [$target.data('info').resolvedToVertexId] });
                     })
                     self.off('fullscreen')
                     self.on('fullscreen', function(event) {
