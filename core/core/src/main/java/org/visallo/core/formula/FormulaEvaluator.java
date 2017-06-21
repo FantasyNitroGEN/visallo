@@ -117,7 +117,7 @@ public class FormulaEvaluator {
         String mapKey = userContext.locale.toString() + userContext.timeZone;
         Scriptable scope = scopes.get(mapKey);
         if (scope == null) {
-            scope = setupContext(getOntologyJson(userContext.getWorkspaceId()), getConfigurationJson(userContext.locale), userContext.timeZone);
+            scope = setupContext(getOntologyJson(userContext.getWorkspaceId()), getConfigurationJson(userContext.locale, userContext.getWorkspaceId()), userContext.timeZone);
             scopes.put(mapKey, scope);
         } else {
             scope.put("ONTOLOGY_JSON", scope, Context.toObject(getOntologyJson(userContext.getWorkspaceId()), scope));
@@ -170,8 +170,8 @@ public class FormulaEvaluator {
         }
     }
 
-    protected String getConfigurationJson(Locale locale) {
-        return configuration.toJSON(locale).toString();
+    protected String getConfigurationJson(Locale locale, String workspaceId) {
+        return configuration.toJSON(locale, workspaceId).toString();
     }
 
     private void evaluateFile(ScriptableObject scope, String filename) {

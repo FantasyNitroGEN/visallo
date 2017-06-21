@@ -367,28 +367,28 @@ public class Configuration {
         return sb.toString();
     }
 
-    public JSONObject toJSON(Locale locale) {
+    public JSONObject toJSON(Locale locale, String workspaceId) {
         if (locale == null) {
             locale = Locale.getDefault();
         }
-        return toJSON(visalloResourceBundleManager.getBundle(locale));
+        return toJSON(visalloResourceBundleManager.getBundle(locale), workspaceId);
     }
 
-    public JSONObject toJSON(ResourceBundle resourceBundle) {
+    public JSONObject toJSON(ResourceBundle resourceBundle, String workspaceId) {
         JSONObject properties = new JSONObject();
 
         OntologyRepository ontologyRepository = getOntologyRepository();
-        for (Concept concept : ontologyRepository.getConceptsWithProperties()) {
+        for (Concept concept : ontologyRepository.getConceptsWithProperties(workspaceId)) {
             for (String intent : concept.getIntents()) {
                 properties.put(OntologyRepository.CONFIG_INTENT_CONCEPT_PREFIX + intent, concept.getIRI());
             }
         }
-        for (OntologyProperty property : ontologyRepository.getProperties()) {
+        for (OntologyProperty property : ontologyRepository.getProperties(workspaceId)) {
             for (String intent : property.getIntents()) {
                 properties.put(OntologyRepository.CONFIG_INTENT_PROPERTY_PREFIX + intent, property.getTitle());
             }
         }
-        for (Relationship relationship : ontologyRepository.getRelationships()) {
+        for (Relationship relationship : ontologyRepository.getRelationships(workspaceId)) {
             for (String intent : relationship.getIntents()) {
                 properties.put(OntologyRepository.CONFIG_INTENT_RELATIONSHIP_PREFIX + intent, relationship.getIRI());
             }

@@ -39,7 +39,7 @@ public class VertexGeoSearch implements ParameterizedHandler {
     ) throws Exception {
         ClientApiElementSearchResponse results = new ClientApiElementSearchResponse();
 
-        for (OntologyProperty property : this.ontologyRepository.getProperties()) {
+        for (OntologyProperty property : this.ontologyRepository.getProperties(workspaceId)) {
             if (property.getDataType() != PropertyType.GEO_LOCATION) {
                 continue;
             }
