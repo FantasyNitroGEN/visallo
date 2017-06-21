@@ -43,7 +43,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
 
         User systemUser = getUserRepository().getSystemUser();
         Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(systemUser);
-        thingConcept = getOntologyRepository().getEntityConcept(systemUser, null);
+        thingConcept = getOntologyRepository().getEntityConcept(null);
 
         List<Concept> things = Collections.singletonList(thingConcept);
         Relationship hasEntityRel = getOntologyRepository().getOrCreateRelationshipType(null, things, things, "has-entity-iri", true, systemUser, null);
@@ -294,7 +294,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         }
 
         if (expectedConceptStatus != null) {
-            Concept concept = getOntologyRepository().getConceptByIRI(conceptIri, user, workspace.getWorkspaceId());
+            Concept concept = getOntologyRepository().getConceptByIRI(conceptIri, workspace.getWorkspaceId());
             assertEquals(expectedConceptStatus, concept.getSandboxStatus());
         }
     }
@@ -389,7 +389,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         }
 
         if (expectedEdgeStatus != null) {
-            Relationship relationship = getOntologyRepository().getRelationshipByIRI(edgeLabel, user, workspace.getWorkspaceId());
+            Relationship relationship = getOntologyRepository().getRelationshipByIRI(edgeLabel, workspace.getWorkspaceId());
             assertEquals(expectedEdgeStatus, relationship.getSandboxStatus());
         }
     }
@@ -460,7 +460,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         }
 
         if (expectedEdgeStatus != null) {
-            OntologyProperty ontologyProperty = getOntologyRepository().getPropertyByIRI(propertyName, user, workspace.getWorkspaceId());
+            OntologyProperty ontologyProperty = getOntologyRepository().getPropertyByIRI(propertyName, workspace.getWorkspaceId());
             assertEquals(expectedEdgeStatus, ontologyProperty.getSandboxStatus());
         }
     }

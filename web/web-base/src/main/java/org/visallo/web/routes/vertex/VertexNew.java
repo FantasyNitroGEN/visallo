@@ -99,7 +99,7 @@ public class VertexNew implements ParameterizedHandler {
         if (propertiesJsonString != null && propertiesJsonString.length() > 0) {
             properties = ClientApiConverter.toClientApi(propertiesJsonString, ClientApiAddElementProperties.class);
             for (ClientApiAddElementProperties.Property property : properties.properties) {
-                OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.propertyName, user, workspaceId);
+                OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.propertyName, workspaceId);
                 checkNotNull(ontologyProperty, "Could not find ontology property '" + property.propertyName + "'");
                 Object value = ontologyProperty.convertString(property.value);
                 Metadata metadata = VertexiumMetadataUtil.metadataStringToMap(

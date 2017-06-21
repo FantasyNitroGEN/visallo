@@ -28,7 +28,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class WorkProductElements implements WorkProduct, WorkProductHasElements {
     public static final String WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI = "http://visallo.org/workspace/product#toEntity";
-    private final OntologyRepository ontologyRepository;
     private final AuthorizationRepository authorizationRepository;
     private final UserRepository userRepository;
 
@@ -37,7 +36,6 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
             AuthorizationRepository authorizationRepository,
             UserRepository userRepository
     ) {
-        this.ontologyRepository = ontologyRepository;
         this.authorizationRepository = authorizationRepository;
         this.userRepository = userRepository;
 
@@ -45,17 +43,15 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
     }
 
     private void addProductToEntityRelationshipToOntology(OntologyRepository ontologyRepository) {
-        User systemUser = userRepository.getSystemUser();
-
-        Relationship relationship = ontologyRepository.getRelationshipByIRI(WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI, systemUser, null);
+        Relationship relationship = ontologyRepository.getRelationshipByIRI(WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI, null);
         if (relationship != null) {
             return;
         }
 
-        Concept productConcept = ontologyRepository.getConceptByIRI(WorkspaceProperties.PRODUCT_CONCEPT_IRI, systemUser, null);
+        Concept productConcept = ontologyRepository.getConceptByIRI(WorkspaceProperties.PRODUCT_CONCEPT_IRI, null);
         checkNotNull(productConcept, "Could not find " + WorkspaceProperties.PRODUCT_CONCEPT_IRI);
 
-        Concept thingConcept = ontologyRepository.getConceptByIRI(VisalloProperties.CONCEPT_TYPE_THING, systemUser, null);
+        Concept thingConcept = ontologyRepository.getConceptByIRI(VisalloProperties.CONCEPT_TYPE_THING, null);
         checkNotNull(thingConcept, "Could not find " + VisalloProperties.CONCEPT_TYPE_THING);
 
         List<Concept> domainConcepts = new ArrayList<>();
@@ -69,7 +65,7 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
                 WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
                 null,
                 true,
-                systemUser,
+                userRepository.getSystemUser(),
                 null
         );
         ontologyRepository.clearCache();
@@ -167,7 +163,7 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
             ));
             Iterable<RelatedEdge> productRelatedEdges = graph.findRelatedEdgeSummaryForVertices(productVertices, authorizations);
             List<String> ids = StreamUtil.stream(productRelatedEdges)
-                    .map(edge -> edge.getEdgeId())
+                    .map(RelatedEdge::getEdgeId)
                     .collect(Collectors.toList());
             Map<String, Boolean> relatedEdgesById = graph.doEdgesExist(ids, authorizations);
 

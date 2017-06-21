@@ -41,7 +41,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.toList;
@@ -84,7 +83,7 @@ public abstract class WorkspaceRepository {
         this.ontologyRepository = ontologyRepository;
         this.workQueueRepository = workQueueRepository;
 
-        this.entityHasImageIri = ontologyRepository.getRelationshipIRIByIntent("entityHasImage");
+        this.entityHasImageIri = ontologyRepository.getRelationshipIRIByIntent("entityHasImage", null);
         this.authorizationRepository = authorizationRepository;
         if (this.entityHasImageIri == null) {
             LOGGER.warn("'entityHasImage' intent has not been defined. Please update your ontology.");
@@ -308,7 +307,7 @@ public abstract class WorkspaceRepository {
             Authorizations authorizations
     ) {
         if (this.entityHasImageIri == null) {
-            this.entityHasImageIri = ontologyRepository.getRequiredRelationshipIRIByIntent("entityHasImage", user, workspaceId);
+            this.entityHasImageIri = ontologyRepository.getRequiredRelationshipIRIByIntent("entityHasImage", workspaceId);
         }
 
         Map<ClientApiPublishItem.Action, List<ClientApiPublishItem>> publishDataByAction = Arrays.stream(publishData)
@@ -319,21 +318,21 @@ public abstract class WorkspaceRepository {
         if (addUpdateData != null && !addUpdateData.isEmpty()) {
             publishRequiredConcepts(addUpdateData, user, workspaceId, authorizations);
             publishRequiredRelationships(addUpdateData, user, workspaceId, authorizations);
-            publishRequiredPropertyTypes(addUpdateData, user, workspaceId, authorizations);
+            publishRequiredPropertyTypes(addUpdateData, user, workspaceId);
 
             // Don't publish any data for which we couldn't also publish the required ontology
             addUpdateData = addUpdateData.stream().filter(data -> data.getErrorMessage() == null).collect(Collectors.toList());
 
-            publishVertices(addUpdateData, user, workspaceId, authorizations);
-            publishEdges(addUpdateData, user, workspaceId, authorizations);
+            publishVertices(addUpdateData, workspaceId, authorizations);
+            publishEdges(addUpdateData, workspaceId, authorizations);
         }
 
-        publishProperties(publishData, user, workspaceId, authorizations);
+        publishProperties(publishData, workspaceId, authorizations);
 
         List<ClientApiPublishItem> deletionData = publishDataByAction.get(ClientApiPublishItem.Action.DELETE);
         if (deletionData != null && !deletionData.isEmpty()) {
-            publishEdges(deletionData, user, workspaceId, authorizations);
-            publishVertices(deletionData, user, workspaceId, authorizations);
+            publishEdges(deletionData, workspaceId, authorizations);
+            publishVertices(deletionData, workspaceId, authorizations);
         }
 
         ClientApiWorkspacePublishResponse workspacePublishResponse = new ClientApiWorkspacePublishResponse();
@@ -345,7 +344,7 @@ public abstract class WorkspaceRepository {
         return workspacePublishResponse;
     }
 
-    private void publishVertices(List<ClientApiPublishItem> publishData, User user, String workspaceId, Authorizations authorizations) {
+    private void publishVertices(List<ClientApiPublishItem> publishData, String workspaceId, Authorizations authorizations) {
         LOGGER.debug("BEGIN publishVertices");
 
         Map<String, ClientApiVertexPublishItem> vertexIdToPublishData = publishData.stream()
@@ -379,7 +378,7 @@ public abstract class WorkspaceRepository {
                     data.setErrorMessage(msg);
                     continue;
                 }
-                publishVertex(vertex, data.getAction(), user, authWithVideoFrame, workspaceId);
+                publishVertex(vertex, data.getAction(), authWithVideoFrame, workspaceId);
             } catch (Exception ex) {
                 data.setErrorMessage(ex.getMessage());
             }
@@ -415,7 +414,7 @@ public abstract class WorkspaceRepository {
 
         List<String> publishedConceptIds = vertexIdsByConcept.keySet().stream()
                 .map(iri -> {
-                    Concept concept = ontologyRepository.getConceptByIRI(iri, user, workspaceId);
+                    Concept concept = ontologyRepository.getConceptByIRI(iri, workspaceId);
                     if (concept == null) {
                         vertexIdsByConcept.get(iri).forEach(vertexId -> {
                             ClientApiVertexPublishItem data = publishDataByVertexId.get(vertexId);
@@ -427,7 +426,7 @@ public abstract class WorkspaceRepository {
                 .filter(concept -> concept != null && concept.getSandboxStatus() != SandboxStatus.PUBLIC )
                 .flatMap(concept -> {
                     try {
-                        return ontologyRepository.getConceptAndAncestors(concept, user, workspaceId).stream()
+                        return ontologyRepository.getConceptAndAncestors(concept, workspaceId).stream()
                                 .filter(conceptOrAncestor -> conceptOrAncestor.getSandboxStatus() != SandboxStatus.PUBLIC)
                                 .map(conceptOrAncestor -> {
                                     try {
@@ -480,7 +479,7 @@ public abstract class WorkspaceRepository {
 
         List<String> publishedRelationshipIds = edgeIdsByLabel.keySet().stream()
                 .map(iri -> {
-                    Relationship relationship = ontologyRepository.getRelationshipByIRI(iri, user, workspaceId);
+                    Relationship relationship = ontologyRepository.getRelationshipByIRI(iri, workspaceId);
                     if (relationship == null) {
                         edgeIdsByLabel.get(iri).forEach(edgeId -> {
                             ClientApiRelationshipPublishItem data = publishDataByEdgeId.get(edgeId);
@@ -492,7 +491,7 @@ public abstract class WorkspaceRepository {
                 .filter(relationship -> relationship != null && relationship.getSandboxStatus() != SandboxStatus.PUBLIC )
                 .flatMap(relationship -> {
                     try {
-                        return ontologyRepository.getRelationshipAndAncestors(relationship, user, workspaceId).stream()
+                        return ontologyRepository.getRelationshipAndAncestors(relationship, workspaceId).stream()
                                 .filter(relationshipOrAncestor -> relationshipOrAncestor.getSandboxStatus() != SandboxStatus.PUBLIC)
                                 .map(relationshipOrAncestor -> {
                                     try {
@@ -527,8 +526,7 @@ public abstract class WorkspaceRepository {
     private void publishRequiredPropertyTypes(
             List<ClientApiPublishItem> publishData,
             User user,
-            String workspaceId,
-            Authorizations authorizations
+            String workspaceId
     ) {
         Map<String, List<ClientApiPropertyPublishItem>> publishDataByPropertyIri = publishData.stream()
                 .filter(data -> data instanceof ClientApiPropertyPublishItem)
@@ -538,11 +536,11 @@ public abstract class WorkspaceRepository {
 
         List<String> publishedPropertyIds = publishDataByPropertyIri.keySet().stream()
                 .map(iri -> {
-                    OntologyProperty property = ontologyRepository.getPropertyByIRI(iri, user, workspaceId);
+                    OntologyProperty property = ontologyRepository.getPropertyByIRI(iri, workspaceId);
                     if (property == null) {
-                        publishDataByPropertyIri.get(iri).forEach(data -> {
-                            data.setErrorMessage("Unable to locate property with IRI " + iri);
-                        });
+                        publishDataByPropertyIri.get(iri).forEach(data ->
+                            data.setErrorMessage("Unable to locate property with IRI " + iri)
+                        );
                     }
                     return property;
                 })
@@ -553,9 +551,9 @@ public abstract class WorkspaceRepository {
                         return null;
                     } catch (Exception ex) {
                         LOGGER.error("Error publishing property %s", property.getIri(), ex);
-                        publishDataByPropertyIri.get(property.getIri()).forEach(data -> {
-                            data.setErrorMessage("Unable to publish relationship " + property.getDisplayName());
-                        });
+                        publishDataByPropertyIri.get(property.getIri()).forEach(data ->
+                            data.setErrorMessage("Unable to publish relationship " + property.getDisplayName())
+                        );
                     }
                     return property.getId();
                 })
@@ -570,7 +568,6 @@ public abstract class WorkspaceRepository {
 
     private void publishEdges(
             List<ClientApiPublishItem> publishData,
-            User user,
             String workspaceId,
             Authorizations authorizations
     ) {
@@ -606,7 +603,7 @@ public abstract class WorkspaceRepository {
                     data.setErrorMessage("Cannot publish edge, " + edge.getId() + ", because either source and/or dest vertex are not public");
                     continue;
                 }
-                publishEdge(edge, outVertex, inVertex, data.getAction(), user, workspaceId, authorizations);
+                publishEdge(edge, outVertex, inVertex, data.getAction(), workspaceId, authorizations);
             } catch (Exception ex) {
                 data.setErrorMessage(ex.getMessage());
             }
@@ -617,7 +614,6 @@ public abstract class WorkspaceRepository {
 
     private void publishProperties(
             ClientApiPublishItem[] publishData,
-            User user,
             String workspaceId,
             Authorizations authorizations
     ) {
@@ -633,7 +629,7 @@ public abstract class WorkspaceRepository {
                 String propertyKey = propertyPublishItem.getKey();
                 String propertyName = propertyPublishItem.getName();
 
-                OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(propertyName, user, workspaceId);
+                OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(propertyName, workspaceId);
                 checkNotNull(ontologyProperty, "Could not find ontology property: " + propertyName);
                 if (!ontologyProperty.getUserVisible() || propertyName.equals(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName())) {
                     continue;
@@ -684,7 +680,6 @@ public abstract class WorkspaceRepository {
     private void publishVertex(
             Vertex vertex,
             ClientApiPublishItem.Action action,
-            User user,
             Authorizations authorizations,
             String workspaceId
     ) {
@@ -699,7 +694,7 @@ public abstract class WorkspaceRepository {
         LOGGER.debug("publishing vertex %s(%s)", vertex.getId(), vertex.getVisibility().toString());
         VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex);
 
-        if (!visibilityJson.getWorkspaces().contains(workspaceId)) {
+        if (visibilityJson == null || !visibilityJson.getWorkspaces().contains(workspaceId)) {
             throw new VisalloException(String.format(
                     "vertex with id '%s' is not local to workspace '%s'",
                     vertex.getId(),
@@ -714,7 +709,7 @@ public abstract class WorkspaceRepository {
         vertexElementMutation.alterElementVisibility(visalloVisibility.getVisibility());
 
         for (Property property : vertex.getProperties()) {
-            OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.getName(), user, workspaceId);
+            OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.getName(), workspaceId);
             checkNotNull(ontologyProperty, "Could not find ontology property " + property.getName());
             boolean userVisible = ontologyProperty.getUserVisible();
             if (shouldAutoPublishElementProperty(property, userVisible)) {
@@ -902,7 +897,6 @@ public abstract class WorkspaceRepository {
             @SuppressWarnings("UnusedParameters") Vertex outVertex,
             Vertex inVertex,
             ClientApiPublishItem.Action action,
-            User user,
             String workspaceId,
             Authorizations authorizations
     ) {
@@ -916,7 +910,7 @@ public abstract class WorkspaceRepository {
 
         LOGGER.debug("publishing edge %s(%s)", edge.getId(), edge.getVisibility().toString());
         VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(edge);
-        if (!visibilityJson.getWorkspaces().contains(workspaceId)) {
+        if (visibilityJson == null || !visibilityJson.getWorkspaces().contains(workspaceId)) {
             throw new VisalloException(String.format(
                     "edge with id '%s' is not local to workspace '%s'",
                     edge.getId(),
@@ -943,7 +937,7 @@ public abstract class WorkspaceRepository {
             if (VisalloProperties.JUSTIFICATION.getPropertyName().equals(property.getName())) {
                 userVisible = false;
             } else {
-                OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.getName(), user,workspaceId);
+                OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(property.getName(), workspaceId);
                 checkNotNull(
                         ontologyProperty,
                         "Could not find ontology property " + property.getName() + " on property " + property
@@ -1050,7 +1044,7 @@ public abstract class WorkspaceRepository {
                 workspace.getWorkspaceId()
         );
         Iterable<Vertex> vertices = stream(WorkspaceEntity.toVertices(workspaceEntities, getGraph(), systemAuthorizations))
-                .filter(vertex -> vertex != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(

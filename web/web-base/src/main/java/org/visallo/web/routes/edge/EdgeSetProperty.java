@@ -96,7 +96,7 @@ public class EdgeSetProperty extends SetPropertyBase implements ParameterizedHan
 
         aclProvider.checkCanAddOrUpdateProperty(edge, propertyKey, propertyName, user, workspaceId);
 
-        OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName, user, workspaceId);
+        OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName, workspaceId);
 
         Object value;
         try {

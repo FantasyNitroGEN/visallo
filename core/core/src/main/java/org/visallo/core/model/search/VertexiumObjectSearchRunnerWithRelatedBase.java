@@ -38,8 +38,8 @@ public abstract class VertexiumObjectSearchRunnerWithRelatedBase extends Vertexi
     }
 
     @Override
-    protected QueryAndData getQuery(SearchOptions searchOptions, User user, Authorizations authorizations) {
-        JSONArray filterJson = getFilterJson(searchOptions, user, searchOptions.getWorkspaceId());
+    protected QueryAndData getQuery(SearchOptions searchOptions, Authorizations authorizations) {
+        JSONArray filterJson = getFilterJson(searchOptions, searchOptions.getWorkspaceId());
         String queryString;
 
         String[] relatedToVertexIdsParam = searchOptions.getOptionalParameter("relatedToVertexIds[]", String[].class);

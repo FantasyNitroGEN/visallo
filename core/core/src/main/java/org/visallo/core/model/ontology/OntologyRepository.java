@@ -38,168 +38,168 @@ public interface OntologyRepository {
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getRelationships(User, String)} instead.
+     *              use {@link #getRelationships(String)} instead.
      */
     @Deprecated
     Iterable<Relationship> getRelationships();
 
-    Iterable<Relationship> getRelationships(User user, String workspaceId);
+    Iterable<Relationship> getRelationships(String workspaceId);
 
-    Iterable<Relationship> getRelationships(Iterable<String> ids, User user, String workspaceId);
+    Iterable<Relationship> getRelationships(Iterable<String> ids, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getProperties(User, String)} instead.
+     *              use {@link #getProperties(String)} instead.
      */
     Iterable<OntologyProperty> getProperties();
 
-    Iterable<OntologyProperty> getProperties(User user, String workspaceId);
+    Iterable<OntologyProperty> getProperties(String workspaceId);
 
-    Iterable<OntologyProperty> getProperties(Iterable<String> ids, User user, String workspaceId);
+    Iterable<OntologyProperty> getProperties(Iterable<String> ids, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getDisplayNameForLabel(String, User, String)} instead.
+     *              use {@link #getDisplayNameForLabel(String, String)} instead.
      */
     String getDisplayNameForLabel(String relationshipIRI);
 
-    String getDisplayNameForLabel(String relationshipIRI, User user, String workspaceId);
+    String getDisplayNameForLabel(String relationshipIRI, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getPropertyByIRI(String, User, String)} instead.
+     *              use {@link #getPropertyByIRI(String, String)} instead.
      */
     OntologyProperty getPropertyByIRI(String propertyIRI);
 
-    OntologyProperty getPropertyByIRI(String propertyIRI, User user, String workspaceId);
+    OntologyProperty getPropertyByIRI(String propertyIRI, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getRequiredPropertyByIRI(String, User, String)} instead.
+     *              use {@link #getRequiredPropertyByIRI(String, String)} instead.
      */
     OntologyProperty getRequiredPropertyByIRI(String propertyIRI);
 
-    OntologyProperty getRequiredPropertyByIRI(String propertyIRI, User user, String workspaceId);
+    OntologyProperty getRequiredPropertyByIRI(String propertyIRI, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getRelationshipByIRI(String, User, String)} instead.
+     *              use {@link #getRelationshipByIRI(String, String)} instead.
      */
     Relationship getRelationshipByIRI(String propertyIRI);
 
-    Relationship getRelationshipByIRI(String propertyIRI, User user, String workspaceId);
+    Relationship getRelationshipByIRI(String propertyIRI, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #hasRelationshipByIRI(String, User, String)} instead.
+     *              use {@link #hasRelationshipByIRI(String, String)} instead.
      */
     boolean hasRelationshipByIRI(String relationshipIRI);
 
-    boolean hasRelationshipByIRI(String relationshipIRI, User user, String workspaceId);
+    boolean hasRelationshipByIRI(String relationshipIRI, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getConceptsWithProperties(User, String)} instead.
+     *              use {@link #getConceptsWithProperties(String)} instead.
      */
     Iterable<Concept> getConceptsWithProperties();
 
-    Iterable<Concept> getConceptsWithProperties(User user, String workspaceId);
+    Iterable<Concept> getConceptsWithProperties(String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getRootConcept(User, String)} instead.
+     *              use {@link #getRootConcept(String)} instead.
      */
     Concept getRootConcept();
 
-    Concept getRootConcept(User user, String workspaceId);
+    Concept getRootConcept(String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getEntityConcept(User, String)} instead.
+     *              use {@link #getEntityConcept(String)} instead.
      */
     Concept getEntityConcept();
 
-    Concept getEntityConcept(User user, String workspaceId);
+    Concept getEntityConcept(String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getParentConcept(Concept, User, String)} instead.
+     *              use {@link #getParentConcept(Concept, String)} instead.
      */
     Concept getParentConcept(Concept concept);
 
-    Concept getParentConcept(Concept concept, User user, String workspaceId);
+    Concept getParentConcept(Concept concept, String workspaceId);
 
-    Set<Concept> getAncestorConcepts(Concept concept, User user, String workspaceId);
+    Set<Concept> getAncestorConcepts(Concept concept, String workspaceId);
 
-    Set<Concept> getConceptAndAncestors(Concept concept, User user, String workspaceId);
+    Set<Concept> getConceptAndAncestors(Concept concept, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getConceptByIRI(String, User, String)} instead.
+     *              use {@link #getConceptByIRI(String, String)} instead.
      */
     Concept getConceptByIRI(String conceptIRI);
 
-    Concept getConceptByIRI(String conceptIRI, User user, String workspaceId);
+    Concept getConceptByIRI(String conceptIRI, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getConceptAndAllChildrenByIri(String, User, String)} instead.
+     *              use {@link #getConceptAndAllChildrenByIri(String, String)} instead.
      */
     Set<Concept> getConceptAndAllChildrenByIri(String conceptIRI);
 
-    Set<Concept> getConceptAndAllChildrenByIri(String conceptIRI, User user, String workspaceId);
+    Set<Concept> getConceptAndAllChildrenByIri(String conceptIRI, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getConceptAndAllChildren(Concept, User, String)} instead.
+     *              use {@link #getConceptAndAllChildren(Concept, String)} instead.
      */
     Set<Concept> getConceptAndAllChildren(Concept concept);
 
-    Set<Concept> getConceptAndAllChildren(Concept concept, User user, String workspaceId);
+    Set<Concept> getConceptAndAllChildren(Concept concept, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getRelationshipAndAllChildren(Relationship, User, String)} instead.
+     *              use {@link #getRelationshipAndAllChildren(Relationship, String)} instead.
      */
     Set<Relationship> getRelationshipAndAllChildren(Relationship relationship);
 
-    Set<Relationship> getRelationshipAndAllChildren(Relationship relationship, User user, String workspaceId);
+    Set<Relationship> getRelationshipAndAllChildren(Relationship relationship, String workspaceId);
 
-    Relationship getParentRelationship(Relationship relationship, User user, String workspaceId);
+    Relationship getParentRelationship(Relationship relationship, String workspaceId);
 
-    Set<Relationship> getAncestorRelationships(Relationship relationship, User user, String workspaceId);
+    Set<Relationship> getAncestorRelationships(Relationship relationship, String workspaceId);
 
-    Set<Relationship> getRelationshipAndAncestors(Relationship relationship, User user, String workspaceId);
+    Set<Relationship> getRelationshipAndAncestors(Relationship relationship, String workspaceId);
 
-    Iterable<Concept> getConcepts(Iterable<String> ids, User user, String workspaceId);
+    Iterable<Concept> getConcepts(Iterable<String> ids, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
@@ -289,11 +289,11 @@ public interface OntologyRepository {
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #resolvePropertyIds(JSONArray, User, String)} instead.
+     *              use {@link #resolvePropertyIds(JSONArray, String)} instead.
      */
     void resolvePropertyIds(JSONArray filterJson) throws JSONException;
 
-    void resolvePropertyIds(JSONArray filterJson, User user, String workspaceId) throws JSONException;
+    void resolvePropertyIds(JSONArray filterJson, String workspaceId) throws JSONException;
 
     void importResourceOwl(Class baseClass, String fileName, String iri, Authorizations authorizations);
 
@@ -307,11 +307,11 @@ public interface OntologyRepository {
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getClientApiObject(User, String)} instead.
+     *              use {@link #getClientApiObject(String)} instead.
      */
     ClientApiOntology getClientApiObject();
 
-    ClientApiOntology getClientApiObject(User user, String workspaceId);
+    ClientApiOntology getClientApiObject(String workspaceId);
 
     String guessDocumentIRIFromPackage(File inFile) throws Exception;
 
@@ -319,161 +319,161 @@ public interface OntologyRepository {
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getConceptByIntent(String, User, String)} instead.
+     *              use {@link #getConceptByIntent(String, String)} instead.
      */
     Concept getConceptByIntent(String intent);
 
-    Concept getConceptByIntent(String intent, User user, String workspaceId);
+    Concept getConceptByIntent(String intent, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getConceptIRIByIntent(String, User, String)} instead.
+     *              use {@link #getConceptIRIByIntent(String, String)} instead.
      */
     String getConceptIRIByIntent(String intent);
 
-    String getConceptIRIByIntent(String intent, User user, String workspaceId);
+    String getConceptIRIByIntent(String intent, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getRequiredConceptByIntent(String, User, String)} instead.
+     *              use {@link #getRequiredConceptByIntent(String, String)} instead.
      */
     Concept getRequiredConceptByIntent(String intent);
 
-    Concept getRequiredConceptByIntent(String intent, User user, String workspaceId);
+    Concept getRequiredConceptByIntent(String intent, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getRequiredConceptByIRI(String, User, String)} instead.
+     *              use {@link #getRequiredConceptByIRI(String, String)} instead.
      */
     Concept getRequiredConceptByIRI(String iri);
 
-    Concept getRequiredConceptByIRI(String iri, User user, String workspaceId);
+    Concept getRequiredConceptByIRI(String iri, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getRequiredConceptIRIByIntent(String, User, String)} instead.
+     *              use {@link #getRequiredConceptIRIByIntent(String, String)} instead.
      */
     String getRequiredConceptIRIByIntent(String intent);
 
-    String getRequiredConceptIRIByIntent(String intent, User user, String workspaceId);
+    String getRequiredConceptIRIByIntent(String intent, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getRelationshipByIntent(String, User, String)} instead.
+     *              use {@link #getRelationshipByIntent(String, String)} instead.
      */
     Relationship getRelationshipByIntent(String intent);
 
-    Relationship getRelationshipByIntent(String intent, User user, String workspaceId);
+    Relationship getRelationshipByIntent(String intent, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getRelationshipIRIByIntent(String, User, String)} instead.
+     *              use {@link #getRelationshipIRIByIntent(String, String)} instead.
      */
     String getRelationshipIRIByIntent(String intent);
 
-    String getRelationshipIRIByIntent(String intent, User user, String workspaceId);
+    String getRelationshipIRIByIntent(String intent, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getRequiredRelationshipByIntent(String, User, String)} instead.
+     *              use {@link #getRequiredRelationshipByIntent(String, String)} instead.
      */
     Relationship getRequiredRelationshipByIntent(String intent);
 
-    Relationship getRequiredRelationshipByIntent(String intent, User user, String workspaceId);
+    Relationship getRequiredRelationshipByIntent(String intent, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getRequiredRelationshipIRIByIntent(String, User, String)} instead.
+     *              use {@link #getRequiredRelationshipIRIByIntent(String, String)} instead.
      */
     String getRequiredRelationshipIRIByIntent(String intent);
 
-    String getRequiredRelationshipIRIByIntent(String intent, User user, String workspaceId);
+    String getRequiredRelationshipIRIByIntent(String intent, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getPropertyByIntent(String, User, String)} instead.
+     *              use {@link #getPropertyByIntent(String, String)} instead.
      */
     OntologyProperty getPropertyByIntent(String intent);
 
-    OntologyProperty getPropertyByIntent(String intent, User user, String workspaceId);
+    OntologyProperty getPropertyByIntent(String intent, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getPropertyIRIByIntent(String, User, String)} instead.
+     *              use {@link #getPropertyIRIByIntent(String, String)} instead.
      */
     String getPropertyIRIByIntent(String intent);
 
-    String getPropertyIRIByIntent(String intent, User user, String workspaceId);
+    String getPropertyIRIByIntent(String intent, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getVisalloPropertyByIntent(String, Class, User, String)} instead.
+     *              use {@link #getVisalloPropertyByIntent(String, Class, String)} instead.
      */
     <T extends VisalloProperty> T getVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType);
 
-    <T extends VisalloProperty> T getVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType, User user, String workspaceId);
+    <T extends VisalloProperty> T getVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getRequiredVisalloPropertyByIntent(String, Class, User, String)} instead.
+     *              use {@link #getRequiredVisalloPropertyByIntent(String, Class, String)} instead.
      */
     <T extends VisalloProperty> T getRequiredVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType);
 
-    <T extends VisalloProperty> T getRequiredVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType, User user, String workspaceId);
+    <T extends VisalloProperty> T getRequiredVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getPropertiesByIntent(String, User, String)} instead.
+     *              use {@link #getPropertiesByIntent(String, String)} instead.
      */
     List<OntologyProperty> getPropertiesByIntent(String intent);
 
-    List<OntologyProperty> getPropertiesByIntent(String intent, User user, String workspaceId);
+    List<OntologyProperty> getPropertiesByIntent(String intent, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getRequiredPropertyByIntent(String, User, String)} instead.
+     *              use {@link #getRequiredPropertyByIntent(String, String)} instead.
      */
     OntologyProperty getRequiredPropertyByIntent(String intent);
 
-    OntologyProperty getRequiredPropertyByIntent(String intent, User user, String workspaceId);
+    OntologyProperty getRequiredPropertyByIntent(String intent, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getRequiredPropertyIRIByIntent(String, User, String)} instead.
+     *              use {@link #getRequiredPropertyIRIByIntent(String, String)} instead.
      */
     String getRequiredPropertyIRIByIntent(String intent);
 
-    String getRequiredPropertyIRIByIntent(String intent, User user, String workspaceId);
+    String getRequiredPropertyIRIByIntent(String intent, String workspaceId);
 
     /**
      * @deprecated This method was used to avoid reimporting ontologies. It is no longer needed since MD5s of imported ontologies
@@ -486,51 +486,51 @@ public interface OntologyRepository {
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #getDependentPropertyParent(String, User, String)} instead.
+     *              use {@link #getDependentPropertyParent(String, String)} instead.
      */
     OntologyProperty getDependentPropertyParent(String iri);
 
-    OntologyProperty getDependentPropertyParent(String iri, User user, String workspaceId);
+    OntologyProperty getDependentPropertyParent(String iri, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #addConceptTypeFilterToQuery(Query, String, boolean, User, String)} instead.
+     *              use {@link #addConceptTypeFilterToQuery(Query, String, boolean, String)} instead.
      */
     void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes);
 
-    void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes, User user, String workspaceId);
+    void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #addConceptTypeFilterToQuery(Query, Collection, User, String)} instead.
+     *              use {@link #addConceptTypeFilterToQuery(Query, Collection, String)} instead.
      */
     void addConceptTypeFilterToQuery(Query query, Collection<ElementTypeFilter> filters);
 
-    void addConceptTypeFilterToQuery(Query query, Collection<ElementTypeFilter> filters, User user, String workspaceId);
+    void addConceptTypeFilterToQuery(Query query, Collection<ElementTypeFilter> filters, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #addEdgeLabelFilterToQuery(Query, String, boolean, User, String)} instead.
+     *              use {@link #addEdgeLabelFilterToQuery(Query, String, boolean, String)} instead.
      */
     void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes);
 
-    void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes, User user, String workspaceId);
+    void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with
      *              the context of a user and a workspace</br>
      *              {will be removed in next version} </br>
-     *              use {@link #addEdgeLabelFilterToQuery(Query, Collection, User, String)} instead.
+     *              use {@link #addEdgeLabelFilterToQuery(Query, Collection, String)} instead.
      */
     void addEdgeLabelFilterToQuery(Query query, Collection<ElementTypeFilter> filters);
 
-    void addEdgeLabelFilterToQuery(Query query, Collection<ElementTypeFilter> filters, User user, String workspaceId);
+    void addEdgeLabelFilterToQuery(Query query, Collection<ElementTypeFilter> filters, String workspaceId);
 
     /**
      * @deprecated  With the addition of ontology sandboxing, ontology elements must now be retrieved with

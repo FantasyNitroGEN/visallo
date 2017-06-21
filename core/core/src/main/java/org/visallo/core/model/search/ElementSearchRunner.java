@@ -40,8 +40,8 @@ public class ElementSearchRunner extends VertexiumObjectSearchRunnerWithRelatedB
     }
 
     @Override
-    protected QueryAndData getQuery(SearchOptions searchOptions, User user, Authorizations authorizations) {
-        JSONArray filterJson = getFilterJson(searchOptions, user, searchOptions.getWorkspaceId());
+    protected QueryAndData getQuery(SearchOptions searchOptions, Authorizations authorizations) {
+        JSONArray filterJson = getFilterJson(searchOptions, searchOptions.getWorkspaceId());
         String queryString = searchOptions.getRequiredParameter("q", String.class);
         LOGGER.debug("search %s\n%s", queryString, filterJson.toString(2));
 

@@ -5,7 +5,6 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
-import org.vertexium.Authorizations;
 import org.vertexium.TextIndexHint;
 import org.visallo.core.model.ontology.*;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -42,14 +41,12 @@ public class OntologyPropertySave implements ParameterizedHandler {
             @ActiveWorkspaceId String workspaceId,
             User user) throws Exception {
 
-        List<Concept> concepts = conceptIris == null ? new ArrayList<>() : Arrays.asList(conceptIris)
-                .stream()
-                .map(iri -> ontologyRepository.getConceptByIRI(iri, user, workspaceId))
+        List<Concept> concepts = conceptIris == null ? new ArrayList<>() : Arrays.stream(conceptIris)
+                .map(iri -> ontologyRepository.getConceptByIRI(iri, workspaceId))
                 .collect(Collectors.toList());
 
-        List<Relationship> relationships = relationshipIris == null ? new ArrayList<>() : Arrays.asList(relationshipIris)
-                .stream()
-                .map(iri -> ontologyRepository.getRelationshipByIRI(iri, user, workspaceId))
+        List<Relationship> relationships = relationshipIris == null ? new ArrayList<>() : Arrays.stream(relationshipIris)
+                .map(iri -> ontologyRepository.getRelationshipByIRI(iri, workspaceId))
                 .collect(Collectors.toList());
 
         PropertyType type = PropertyType.valueOf(dataType.toUpperCase());
@@ -75,5 +72,4 @@ public class OntologyPropertySave implements ParameterizedHandler {
 
         return property.toClientApi();
     }
-
 }

@@ -54,7 +54,7 @@ public class VertexDeleteProperty implements ParameterizedHandler {
             User user,
             Authorizations authorizations
     ) throws Exception {
-        OntologyProperty ontologyProperty = ontologyRepository.getRequiredPropertyByIRI(propertyName, user, workspaceId);
+        OntologyProperty ontologyProperty = ontologyRepository.getRequiredPropertyByIRI(propertyName, workspaceId);
 
         Vertex vertex = graph.getVertex(graphVertexId, authorizations);
 

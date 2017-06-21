@@ -54,7 +54,7 @@ public class EdgeDeleteProperty implements ParameterizedHandler {
             User user,
             Authorizations authorizations
     ) throws Exception {
-        OntologyProperty ontologyProperty = ontologyRepository.getRequiredPropertyByIRI(propertyName, user, workspaceId);
+        OntologyProperty ontologyProperty = ontologyRepository.getRequiredPropertyByIRI(propertyName, workspaceId);
 
         // TODO remove all properties from all edges? I don't think so
         Edge edge = graph.getEdge(edgeId, authorizations);

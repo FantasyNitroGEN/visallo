@@ -48,7 +48,7 @@ public class ResourceGet implements ParameterizedHandler {
             HttpServletRequest request,
             VisalloResponse response
     ) throws Exception {
-        Glyph glyph = getConceptImage(id, state, user, user.getCurrentWorkspaceId());
+        Glyph glyph = getConceptImage(id, state, user.getCurrentWorkspaceId());
         if (glyph == null || !glyph.isValid()) {
             throw new VisalloResourceNotFoundException("Could not find resource with id: " + id);
         }
@@ -58,8 +58,8 @@ public class ResourceGet implements ParameterizedHandler {
         glyph.write(tint, request, response);
     }
 
-    private Glyph getConceptImage(String conceptIri, String state, User user, String workspaceId) {
-        Concept concept = ontologyRepository.getConceptByIRI(conceptIri, user, workspaceId);
+    private Glyph getConceptImage(String conceptIri, String state, String workspaceId) {
+        Concept concept = ontologyRepository.getConceptByIRI(conceptIri, workspaceId);
         if (concept == null) {
             return null;
         }
@@ -76,7 +76,7 @@ public class ResourceGet implements ParameterizedHandler {
             return null;
         }
 
-        return getConceptImage(parentConceptIri, state, user, workspaceId);
+        return getConceptImage(parentConceptIri, state, workspaceId);
     }
 
     private Glyph getGlyph(Concept concept, boolean isSelected) {

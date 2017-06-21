@@ -74,7 +74,7 @@ public class VertexiumWorkspaceRepositoryTest extends WorkspaceRepositoryTestBas
         );
 
         User systemUser = getUserRepository().getSystemUser();
-        Concept thing = getOntologyRepository().getEntityConcept(systemUser, null);
+        Concept thing = getOntologyRepository().getEntityConcept(null);
         OntologyPropertyDefinition propertyDefinition = new OntologyPropertyDefinition(Collections.singletonList(thing), "prop1", "Prop 1", PropertyType.STRING);
         propertyDefinition.setTextIndexHints(Collections.singleton(TextIndexHint.EXACT_MATCH));
         propertyDefinition.setUserVisible(true);

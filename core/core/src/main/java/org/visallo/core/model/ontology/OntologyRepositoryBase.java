@@ -393,7 +393,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     ) throws IOException {
         String uri = ontologyClass.getIRI().toString();
         if ("http://www.w3.org/2002/07/owl#Thing".equals(uri)) {
-            return getEntityConcept(getSystemUser(), null);
+            return getEntityConcept(null);
         }
 
         String label = OWLOntologyUtil.getLabel(o, ontologyClass);
@@ -536,12 +536,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     ) throws IOException {
         Collection<OWLClassExpression> superClasses = EntitySearcher.getSuperClasses(ontologyClass, o);
         if (superClasses.size() == 0) {
-            return getEntityConcept(null, null);
+            return getEntityConcept(null);
         } else if (superClasses.size() == 1) {
             OWLClassExpression superClassExpr = superClasses.iterator().next();
             OWLClass superClass = superClassExpr.asOWLClass();
             String superClassUri = superClass.getIRI().toString();
-            Concept parent = getConceptByIRI(superClassUri, null, null);
+            Concept parent = getConceptByIRI(superClassUri, null);
             if (parent != null) {
                 return parent;
             }
@@ -580,7 +580,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             for (OWLClassExpression domainClassExpr : EntitySearcher.getDomains(dataTypeProperty, o)) {
                 OWLClass domainClass = domainClassExpr.asOWLClass();
                 String domainClassIri = domainClass.getIRI().toString();
-                Concept domainConcept = getConceptByIRI(domainClassIri, null, null);
+                Concept domainConcept = getConceptByIRI(domainClassIri, null);
                 if (domainConcept == null) {
                     LOGGER.error("Could not find class with IRI \"%s\" for data type property \"%s\"", domainClassIri, dataTypeProperty.getIRI());
                 } else {
@@ -592,7 +592,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             List<Relationship> domainRelationships = new ArrayList<>();
             for (OWLAnnotation domainAnnotation : OWLOntologyUtil.getObjectPropertyDomains(o, dataTypeProperty)) {
                 String domainClassIri = OWLOntologyUtil.getOWLAnnotationValueAsString(domainAnnotation);
-                Relationship domainRelationship = getRelationshipByIRI(domainClassIri, null, null);
+                Relationship domainRelationship = getRelationshipByIRI(domainClassIri, null);
                 if (domainRelationship == null) {
                     LOGGER.error("Could not find relationship with IRI \"%s\" for data type property \"%s\"", domainClassIri, dataTypeProperty.getIRI());
                 } else {
@@ -681,10 +681,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     protected void addExtendedDataTableProperty(String tablePropertyIri, String propertyIri, User user, String workspaceId) {
-        OntologyProperty tableProperty = getPropertyByIRI(tablePropertyIri, user, workspaceId);
+        OntologyProperty tableProperty = getPropertyByIRI(tablePropertyIri, workspaceId);
         checkNotNull(tableProperty, "Could not find table property: " + tablePropertyIri);
 
-        OntologyProperty property = getPropertyByIRI(propertyIri, user, workspaceId);
+        OntologyProperty property = getPropertyByIRI(propertyIri, workspaceId);
         checkNotNull(property, "Could not find property: " + propertyIri);
 
         addExtendedDataTableProperty(tableProperty, property, user, workspaceId);
@@ -702,7 +702,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     public final OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition, User user, String workspaceId) {
         checkPrivileges(user, workspaceId);
 
-        OntologyProperty property = getPropertyByIRI(ontologyPropertyDefinition.getPropertyIri(), user, workspaceId);
+        OntologyProperty property = getPropertyByIRI(ontologyPropertyDefinition.getPropertyIri(), workspaceId);
         if (property != null) {
             return property;
         }
@@ -732,7 +732,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         );
         if (ontologyPropertyDefinition.getExtendedDataTableDomains() != null) {
             for (String extendedDataTableDomain : ontologyPropertyDefinition.getExtendedDataTableDomains()) {
-                OntologyProperty tableProperty = getPropertyByIRI(extendedDataTableDomain, user, workspaceId);
+                OntologyProperty tableProperty = getPropertyByIRI(extendedDataTableDomain, workspaceId);
                 checkNotNull(tableProperty, "Could not find table property: " + extendedDataTableDomain);
                 addExtendedDataTableProperty(tableProperty, prop, user, workspaceId);
             }
@@ -853,7 +853,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             OWLObjectPropertyExpression superPropertyExpr = superProperties.iterator().next();
             OWLObjectProperty superProperty = superPropertyExpr.asOWLObjectProperty();
             String superPropertyUri = superProperty.getIRI().toString();
-            Relationship parent = getRelationshipByIRI(superPropertyUri, getSystemUser(), null);
+            Relationship parent = getRelationshipByIRI(superPropertyUri, null);
             if (parent != null) {
                 return parent;
             }
@@ -875,13 +875,13 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         for (OWLObjectPropertyExpression inverseOf : EntitySearcher.getInverses(objectProperty, o)) {
             if (inverseOf instanceof OWLObjectProperty) {
                 if (fromRelationship == null) {
-                    fromRelationship = getRelationshipByIRI(iri, getSystemUser(), null);
+                    fromRelationship = getRelationshipByIRI(iri, null);
                     checkNotNull(fromRelationship, "could not find from relationship: " + iri);
                 }
 
                 OWLObjectProperty inverseOfOWLObjectProperty = (OWLObjectProperty) inverseOf;
                 String inverseOfIri = inverseOfOWLObjectProperty.getIRI().toString();
-                Relationship inverseOfRelationship = getRelationshipByIRI(inverseOfIri);
+                Relationship inverseOfRelationship = getRelationshipByIRI(inverseOfIri, null);
                 getOrCreateInverseOfRelationship(fromRelationship, inverseOfRelationship);
             }
         }
@@ -897,7 +897,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         for (OWLClassExpression rangeClassExpr : EntitySearcher.getRanges(objectProperty, o)) {
             OWLClass rangeClass = rangeClassExpr.asOWLClass();
             String rangeClassIri = rangeClass.getIRI().toString();
-            Concept ontologyClass = getConceptByIRI(rangeClassIri, getSystemUser(), null);
+            Concept ontologyClass = getConceptByIRI(rangeClassIri, null);
             if (ontologyClass == null) {
                 LOGGER.error("Could not find class with IRI \"%s\" for object property \"%s\"", rangeClassIri, objectProperty.getIRI());
             } else {
@@ -912,7 +912,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         for (OWLClassExpression domainClassExpr : EntitySearcher.getDomains(objectProperty, o)) {
             OWLClass rangeClass = domainClassExpr.asOWLClass();
             String rangeClassIri = rangeClass.getIRI().toString();
-            Concept ontologyClass = getConceptByIRI(rangeClassIri, getSystemUser(), null);
+            Concept ontologyClass = getConceptByIRI(rangeClassIri, null);
             if (ontologyClass == null) {
                 LOGGER.error("Could not find class with IRI \"%s\" for object property \"%s\"", rangeClassIri, objectProperty.getIRI());
             } else {
@@ -971,32 +971,32 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final Set<Concept> getConceptAndAllChildrenByIri(String conceptIRI) {
-        return getConceptAndAllChildrenByIri(conceptIRI, null, null);
+        return getConceptAndAllChildrenByIri(conceptIRI, null);
     }
 
     @Override
-    public Set<Concept> getConceptAndAllChildrenByIri(String conceptIRI, User user, String workspaceId) {
-        Concept concept = getConceptByIRI(conceptIRI, user, workspaceId);
+    public Set<Concept> getConceptAndAllChildrenByIri(String conceptIRI, String workspaceId) {
+        Concept concept = getConceptByIRI(conceptIRI, workspaceId);
         if (concept == null) {
             return null;
         }
-        return getConceptAndAllChildren(concept, user, workspaceId);
+        return getConceptAndAllChildren(concept, workspaceId);
     }
 
     @Deprecated
     @Override
     public final Set<Concept> getConceptAndAllChildren(Concept concept) {
-        return getConceptAndAllChildren(concept, null, null);
+        return getConceptAndAllChildren(concept, null);
     }
 
     @Override
-    public Set<Concept> getConceptAndAllChildren(Concept concept, User user, String workspaceId) {
-        List<Concept> childConcepts = getChildConcepts(concept, user, workspaceId);
+    public Set<Concept> getConceptAndAllChildren(Concept concept, String workspaceId) {
+        List<Concept> childConcepts = getChildConcepts(concept, workspaceId);
         Set<Concept> result = Sets.newHashSet(concept);
         if (childConcepts.size() > 0) {
             List<Concept> childrenList = new ArrayList<>();
             for (Concept childConcept : childConcepts) {
-                Set<Concept> child = getConceptAndAllChildren(childConcept, user, workspaceId);
+                Set<Concept> child = getConceptAndAllChildren(childConcept, workspaceId);
                 childrenList.addAll(child);
             }
             result.addAll(childrenList);
@@ -1005,43 +1005,43 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     @Override
-    public Set<Concept> getAncestorConcepts(Concept concept, User user, String workspaceId) {
+    public Set<Concept> getAncestorConcepts(Concept concept, String workspaceId) {
         Set<Concept> result = Sets.newHashSet();
-        Concept parentConcept = getParentConcept(concept, user, workspaceId);
+        Concept parentConcept = getParentConcept(concept, workspaceId);
         while (parentConcept != null) {
             result.add(parentConcept);
-            parentConcept = getParentConcept(parentConcept, user, workspaceId);
+            parentConcept = getParentConcept(parentConcept, workspaceId);
         }
         return result;
     }
 
     @Override
-    public Set<Concept> getConceptAndAncestors(Concept concept, User user, String workspaceId) {
+    public Set<Concept> getConceptAndAncestors(Concept concept, String workspaceId) {
         Set<Concept> result = Sets.newHashSet(concept);
-        result.addAll(getAncestorConcepts(concept, user, workspaceId));
+        result.addAll(getAncestorConcepts(concept, workspaceId));
         return result;
     }
 
     protected List<Concept> getChildConcepts(Concept concept) {
-        return getChildConcepts(concept, null, null);
+        return getChildConcepts(concept, null);
     }
 
-    protected abstract List<Concept> getChildConcepts(Concept concept, User user, String workspaceId);
+    protected abstract List<Concept> getChildConcepts(Concept concept, String workspaceId);
 
     @Deprecated
     @Override
     public final Set<Relationship> getRelationshipAndAllChildren(Relationship relationship) {
-        return getRelationshipAndAllChildren(relationship, null, null);
+        return getRelationshipAndAllChildren(relationship, null);
     }
 
     @Override
-    public Set<Relationship> getRelationshipAndAllChildren(Relationship relationship, User user, String workspaceId) {
-        List<Relationship> childRelationships = getChildRelationships(relationship, user, workspaceId);
+    public Set<Relationship> getRelationshipAndAllChildren(Relationship relationship, String workspaceId) {
+        List<Relationship> childRelationships = getChildRelationships(relationship, workspaceId);
         Set<Relationship> result = Sets.newHashSet(relationship);
         if (childRelationships.size() > 0) {
             List<Relationship> childrenList = new ArrayList<>();
             for (Relationship childRelationship : childRelationships) {
-                Set<Relationship> child = getRelationshipAndAllChildren(childRelationship, user, workspaceId);
+                Set<Relationship> child = getRelationshipAndAllChildren(childRelationship, workspaceId);
                 childrenList.addAll(child);
             }
             result.addAll(childrenList);
@@ -1050,53 +1050,53 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     @Override
-    public Set<Relationship> getAncestorRelationships(Relationship relationship, User user, String workspaceId) {
+    public Set<Relationship> getAncestorRelationships(Relationship relationship, String workspaceId) {
         Set<Relationship> result = Sets.newHashSet();
-        Relationship parentRelationship = getParentRelationship(relationship, user, workspaceId);
+        Relationship parentRelationship = getParentRelationship(relationship, workspaceId);
         while (parentRelationship != null) {
             result.add(parentRelationship);
-            parentRelationship = getParentRelationship(relationship, user, workspaceId);
+            parentRelationship = getParentRelationship(relationship, workspaceId);
         }
         return result;
     }
 
     @Override
-    public Set<Relationship> getRelationshipAndAncestors(Relationship relationship, User user, String workspaceId) {
+    public Set<Relationship> getRelationshipAndAncestors(Relationship relationship, String workspaceId) {
         Set<Relationship> result = Sets.newHashSet(relationship);
-        result.addAll(getAncestorRelationships(relationship, user, workspaceId));
+        result.addAll(getAncestorRelationships(relationship, workspaceId));
         return result;
     }
 
     @Deprecated
     @Override
     public final boolean hasRelationshipByIRI(String relationshipIRI) {
-        return hasRelationshipByIRI(relationshipIRI, null, null);
+        return hasRelationshipByIRI(relationshipIRI, null);
     }
 
     @Override
-    public boolean hasRelationshipByIRI(String relationshipIRI, User user, String workspaceId) {
-        return getRelationshipByIRI(relationshipIRI, user, workspaceId) != null;
+    public boolean hasRelationshipByIRI(String relationshipIRI, String workspaceId) {
+        return getRelationshipByIRI(relationshipIRI, workspaceId) != null;
     }
 
     protected List<Relationship> getChildRelationships(Relationship relationship) {
-        return getChildRelationships(relationship, null, null);
+        return getChildRelationships(relationship, null);
     }
 
-    protected abstract List<Relationship> getChildRelationships(Relationship relationship, User user, String workspaceId);
+    protected abstract List<Relationship> getChildRelationships(Relationship relationship, String workspaceId);
 
     @Deprecated
     @Override
     public final void resolvePropertyIds(JSONArray filterJson) throws JSONException {
-        resolvePropertyIds(filterJson, null, null);
+        resolvePropertyIds(filterJson, null);
     }
 
     @Override
-    public void resolvePropertyIds(JSONArray filterJson, User user, String workspaceId) throws JSONException {
+    public void resolvePropertyIds(JSONArray filterJson, String workspaceId) throws JSONException {
         for (int i = 0; i < filterJson.length(); i++) {
             JSONObject filter = filterJson.getJSONObject(i);
             if (filter.has("propertyId") && !filter.has("propertyName")) {
                 String propertyVertexId = filter.getString("propertyId");
-                OntologyProperty property = getPropertyByIRI(propertyVertexId, user, workspaceId);
+                OntologyProperty property = getPropertyByIRI(propertyVertexId, workspaceId);
                 if (property == null) {
                     throw new RuntimeException("Could not find property with id: " + propertyVertexId);
                 }
@@ -1109,12 +1109,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final Concept getConceptByIRI(String conceptIRI) {
-        return getConceptByIRI(conceptIRI, null, null);
+        return getConceptByIRI(conceptIRI, null);
     }
 
     @Override
-    public Concept getConceptByIRI(String conceptIRI, User user, String workspaceId) {
-        for (Concept concept : getConceptsWithProperties(user, workspaceId)) {
+    public Concept getConceptByIRI(String conceptIRI, String workspaceId) {
+        for (Concept concept : getConceptsWithProperties(workspaceId)) {
             if (concept.getIRI().equals(conceptIRI)) {
                 return concept;
             }
@@ -1125,12 +1125,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final OntologyProperty getPropertyByIRI(String propertyIRI) {
-        return getPropertyByIRI(propertyIRI, null, null);
+        return getPropertyByIRI(propertyIRI, null);
     }
 
     @Override
-    public OntologyProperty getPropertyByIRI(String propertyIRI, User user, String workspaceId) {
-        for (OntologyProperty prop : getProperties(user, workspaceId)) {
+    public OntologyProperty getPropertyByIRI(String propertyIRI, String workspaceId) {
+        for (OntologyProperty prop : getProperties(workspaceId)) {
             if (prop.getTitle().equals(propertyIRI)) {
                 return prop;
             }
@@ -1141,12 +1141,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final OntologyProperty getRequiredPropertyByIRI(String propertyIRI) {
-        return getRequiredPropertyByIRI(propertyIRI, null, null);
+        return getRequiredPropertyByIRI(propertyIRI, null);
     }
 
     @Override
-    public OntologyProperty getRequiredPropertyByIRI(String propertyIRI, User user, String workspaceId) {
-        OntologyProperty property = getPropertyByIRI(propertyIRI, user, workspaceId);
+    public OntologyProperty getRequiredPropertyByIRI(String propertyIRI, String workspaceId) {
+        OntologyProperty property = getPropertyByIRI(propertyIRI, workspaceId);
         if (property == null) {
             throw new VisalloException("Could not find property by IRI: " + propertyIRI);
         }
@@ -1156,54 +1156,54 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final Iterable<Relationship> getRelationships() {
-        return getRelationships(null, null);
+        return getRelationships(null);
     }
 
     @Deprecated
     @Override
     public final Iterable<OntologyProperty> getProperties() {
-        return getProperties(null, null);
+        return getProperties(null);
     }
 
     @Deprecated
     @Override
     public final String getDisplayNameForLabel(String relationshipIRI) {
-        return getDisplayNameForLabel(relationshipIRI, null, null);
+        return getDisplayNameForLabel(relationshipIRI, null);
     }
 
     @Deprecated
     @Override
     public Iterable<Concept> getConceptsWithProperties() {
-        return getConceptsWithProperties(null, null);
+        return getConceptsWithProperties(null);
     }
 
     @Deprecated
     @Override
     public final Concept getRootConcept() {
-        return getRootConcept(null, null);
+        return getRootConcept(null);
     }
 
     @Deprecated
     @Override
     public final Concept getEntityConcept() {
-        return getEntityConcept(null, null);
+        return getEntityConcept(null);
     }
 
     @Deprecated
     @Override
     public final Concept getParentConcept(Concept concept) {
-        return getParentConcept(concept, null, null);
+        return getParentConcept(concept, null);
     }
 
     @Deprecated
     @Override
     public final Relationship getRelationshipByIRI(String relationshipIRI) {
-        return getRelationshipByIRI(relationshipIRI, null, null);
+        return getRelationshipByIRI(relationshipIRI, null);
     }
 
     @Override
-    public Relationship getRelationshipByIRI(String relationshipIRI, User user, String workspaceId) {
-        for (Relationship rel : getRelationships(user, workspaceId)) {
+    public Relationship getRelationshipByIRI(String relationshipIRI, String workspaceId) {
+        for (Relationship rel : getRelationships(workspaceId)) {
             if (rel.getIRI().equals(relationshipIRI)) {
                 return rel;
             }
@@ -1214,22 +1214,22 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final Concept getConceptByIntent(String intent) {
-        return getConceptByIntent(intent, null, null);
+        return getConceptByIntent(intent, null);
     }
 
     @Override
-    public Concept getConceptByIntent(String intent, User user, String workspaceId) {
+    public Concept getConceptByIntent(String intent, String workspaceId) {
         String configurationKey = CONFIG_INTENT_CONCEPT_PREFIX + intent;
         String conceptIri = getConfiguration().get(configurationKey, null);
         if (conceptIri != null) {
-            Concept concept = getConceptByIRI(conceptIri, user, workspaceId);
+            Concept concept = getConceptByIRI(conceptIri, workspaceId);
             if (concept == null) {
                 throw new VisalloException("Could not find concept by configuration key: " + configurationKey);
             }
             return concept;
         }
 
-        List<Concept> concepts = findLoadedConceptsByIntent(intent, user, workspaceId);
+        List<Concept> concepts = findLoadedConceptsByIntent(intent, workspaceId);
         if (concepts.size() == 0) {
             return null;
         }
@@ -1249,12 +1249,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public String getConceptIRIByIntent(String intent) {
-        return getConceptIRIByIntent(intent, null, null);
+        return getConceptIRIByIntent(intent, null);
     }
 
     @Override
-    public String getConceptIRIByIntent(String intent, User user, String workspaceId) {
-        Concept concept = getConceptByIntent(intent, user, workspaceId);
+    public String getConceptIRIByIntent(String intent, String workspaceId) {
+        Concept concept = getConceptByIntent(intent, workspaceId);
         if (concept != null) {
             return concept.getIRI();
         }
@@ -1264,12 +1264,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final Concept getRequiredConceptByIntent(String intent) {
-        return getRequiredConceptByIntent(intent, null, null);
+        return getRequiredConceptByIntent(intent, null);
     }
 
     @Override
-    public Concept getRequiredConceptByIntent(String intent, User user, String workspaceId) {
-        Concept concept = getConceptByIntent(intent, user, workspaceId);
+    public Concept getRequiredConceptByIntent(String intent, String workspaceId) {
+        Concept concept = getConceptByIntent(intent, workspaceId);
         if (concept == null) {
             throw new VisalloException("Could not find concept by intent: " + intent);
         }
@@ -1279,23 +1279,23 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final String getRequiredConceptIRIByIntent(String intent) {
-        return getRequiredConceptIRIByIntent(intent, null, null);
+        return getRequiredConceptIRIByIntent(intent, null);
     }
 
     @Override
-    public String getRequiredConceptIRIByIntent(String intent, User user, String workspaceId) {
-        return getRequiredConceptByIntent(intent, user, workspaceId).getIRI();
+    public String getRequiredConceptIRIByIntent(String intent, String workspaceId) {
+        return getRequiredConceptByIntent(intent, workspaceId).getIRI();
     }
 
     @Deprecated
     @Override
     public final Concept getRequiredConceptByIRI(String iri) {
-        return getRequiredConceptByIRI(iri, null, null);
+        return getRequiredConceptByIRI(iri, null);
     }
 
     @Override
-    public Concept getRequiredConceptByIRI(String iri, User user, String workspaceId) {
-        Concept concept = getConceptByIRI(iri, user, workspaceId);
+    public Concept getRequiredConceptByIRI(String iri, String workspaceId) {
+        Concept concept = getConceptByIRI(iri, workspaceId);
         if (concept == null) {
             throw new VisalloException("Could not find concept by IRI: " + iri);
         }
@@ -1412,22 +1412,22 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final Relationship getRelationshipByIntent(String intent) {
-        return getRelationshipByIntent(intent, null, null);
+        return getRelationshipByIntent(intent, null);
     }
 
     @Override
-    public Relationship getRelationshipByIntent(String intent, User user, String workspaceId) {
+    public Relationship getRelationshipByIntent(String intent, String workspaceId) {
         String configurationKey = CONFIG_INTENT_RELATIONSHIP_PREFIX + intent;
         String relationshipIri = getConfiguration().get(configurationKey, null);
         if (relationshipIri != null) {
-            Relationship relationship = getRelationshipByIRI(relationshipIri, user, workspaceId);
+            Relationship relationship = getRelationshipByIRI(relationshipIri, workspaceId);
             if (relationship == null) {
                 throw new VisalloException("Could not find relationship by configuration key: " + configurationKey);
             }
             return relationship;
         }
 
-        List<Relationship> relationships = findLoadedRelationshipsByIntent(intent, user, workspaceId);
+        List<Relationship> relationships = findLoadedRelationshipsByIntent(intent, workspaceId);
         if (relationships.size() == 0) {
             return null;
         }
@@ -1447,12 +1447,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final String getRelationshipIRIByIntent(String intent) {
-        return getRelationshipIRIByIntent(intent, null, null);
+        return getRelationshipIRIByIntent(intent, null);
     }
 
     @Override
-    public String getRelationshipIRIByIntent(String intent, User user, String workspaceId) {
-        Relationship relationship = getRelationshipByIntent(intent, user, workspaceId);
+    public String getRelationshipIRIByIntent(String intent, String workspaceId) {
+        Relationship relationship = getRelationshipByIntent(intent, workspaceId);
         if (relationship != null) {
             return relationship.getIRI();
         }
@@ -1462,12 +1462,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final Relationship getRequiredRelationshipByIntent(String intent) {
-        return getRequiredRelationshipByIntent(intent, null, null);
+        return getRequiredRelationshipByIntent(intent, null);
     }
 
     @Override
-    public Relationship getRequiredRelationshipByIntent(String intent, User user, String workspaceId) {
-        Relationship relationship = getRelationshipByIntent(intent, user, workspaceId);
+    public Relationship getRequiredRelationshipByIntent(String intent, String workspaceId) {
+        Relationship relationship = getRelationshipByIntent(intent, workspaceId);
         if (relationship == null) {
             throw new VisalloException("Could not find relationship by intent: " + intent);
         }
@@ -1477,33 +1477,33 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final String getRequiredRelationshipIRIByIntent(String intent) {
-        return getRequiredRelationshipIRIByIntent(intent, null, null);
+        return getRequiredRelationshipIRIByIntent(intent, null);
     }
 
     @Override
-    public String getRequiredRelationshipIRIByIntent(String intent, User user, String workspaceId) {
-        return getRequiredRelationshipByIntent(intent, user, workspaceId).getIRI();
+    public String getRequiredRelationshipIRIByIntent(String intent, String workspaceId) {
+        return getRequiredRelationshipByIntent(intent, workspaceId).getIRI();
     }
 
     @Deprecated
     @Override
     public final OntologyProperty getPropertyByIntent(String intent) {
-        return getPropertyByIntent(intent, null, null);
+        return getPropertyByIntent(intent, null);
     }
 
     @Override
-    public OntologyProperty getPropertyByIntent(String intent, User user, String workspaceId) {
+    public OntologyProperty getPropertyByIntent(String intent, String workspaceId) {
         String configurationKey = CONFIG_INTENT_PROPERTY_PREFIX + intent;
         String propertyIri = getConfiguration().get(configurationKey, null);
         if (propertyIri != null) {
-            OntologyProperty property = getPropertyByIRI(propertyIri, user, workspaceId);
+            OntologyProperty property = getPropertyByIRI(propertyIri, workspaceId);
             if (property == null) {
                 throw new VisalloException("Could not find property by configuration key: " + configurationKey);
             }
             return property;
         }
 
-        List<OntologyProperty> properties = getPropertiesByIntent(intent, user, workspaceId);
+        List<OntologyProperty> properties = getPropertiesByIntent(intent, workspaceId);
         if (properties.size() == 0) {
             return null;
         }
@@ -1523,12 +1523,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final String getPropertyIRIByIntent(String intent) {
-        return getPropertyIRIByIntent(intent, null, null);
+        return getPropertyIRIByIntent(intent, null);
     }
 
     @Override
-    public String getPropertyIRIByIntent(String intent, User user, String workspaceId) {
-        OntologyProperty prop = getPropertyByIntent(intent, user, workspaceId);
+    public String getPropertyIRIByIntent(String intent, String workspaceId) {
+        OntologyProperty prop = getPropertyByIntent(intent, workspaceId);
         if (prop != null) {
             return prop.getTitle();
         }
@@ -1538,12 +1538,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final OntologyProperty getRequiredPropertyByIntent(String intent) {
-        return getRequiredPropertyByIntent(intent, null, null);
+        return getRequiredPropertyByIntent(intent, null);
     }
 
     @Override
-    public OntologyProperty getRequiredPropertyByIntent(String intent, User user, String workspaceId) {
-        OntologyProperty property = getPropertyByIntent(intent, user, workspaceId);
+    public OntologyProperty getRequiredPropertyByIntent(String intent, String workspaceId) {
+        OntologyProperty property = getPropertyByIntent(intent, workspaceId);
         if (property == null) {
             throw new VisalloException("Could not find property by intent: " + intent);
         }
@@ -1553,23 +1553,23 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final String getRequiredPropertyIRIByIntent(String intent) {
-        return getRequiredPropertyIRIByIntent(intent, null, null);
+        return getRequiredPropertyIRIByIntent(intent, null);
     }
 
     @Override
-    public String getRequiredPropertyIRIByIntent(String intent, User user, String workspaceId) {
-        return getRequiredPropertyByIntent(intent, user, workspaceId).getTitle();
+    public String getRequiredPropertyIRIByIntent(String intent, String workspaceId) {
+        return getRequiredPropertyByIntent(intent, workspaceId).getTitle();
     }
 
     @Deprecated
     @Override
     public final OntologyProperty getDependentPropertyParent(String iri) {
-        return getDependentPropertyParent(iri, null, null);
+        return getDependentPropertyParent(iri, null);
     }
 
     @Override
-    public OntologyProperty getDependentPropertyParent(String iri, User user, String workspaceId) {
-        for (OntologyProperty property : getProperties(user, workspaceId)) {
+    public OntologyProperty getDependentPropertyParent(String iri, String workspaceId) {
+        for (OntologyProperty property : getProperties(workspaceId)) {
             if (property.getDependentPropertyIris().contains(iri)) {
                 return property;
             }
@@ -1580,12 +1580,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final <T extends VisalloProperty> T getVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType) {
-        return getVisalloPropertyByIntent(intent, visalloPropertyType, null, null);
+        return getVisalloPropertyByIntent(intent, visalloPropertyType, null);
     }
 
     @Override
-    public <T extends VisalloProperty> T getVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType, User user, String workspaceId) {
-        String propertyIri = getPropertyIRIByIntent(intent, user, workspaceId);
+    public <T extends VisalloProperty> T getVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType, String workspaceId) {
+        String propertyIri = getPropertyIRIByIntent(intent, workspaceId);
         if (propertyIri == null) {
             LOGGER.warn("No property found for intent: %s", intent);
             return null;
@@ -1601,12 +1601,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final <T extends VisalloProperty> T getRequiredVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType) {
-        return getRequiredVisalloPropertyByIntent(intent, visalloPropertyType, null, null);
+        return getRequiredVisalloPropertyByIntent(intent, visalloPropertyType, null);
     }
 
     @Override
-    public <T extends VisalloProperty> T getRequiredVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType, User user, String workspaceId) {
-        T result = getVisalloPropertyByIntent(intent, visalloPropertyType, user, workspaceId);
+    public <T extends VisalloProperty> T getRequiredVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType, String workspaceId) {
+        T result = getVisalloPropertyByIntent(intent, visalloPropertyType, workspaceId);
         if (result == null) {
             throw new VisalloException("Could not find property by intent: " + intent);
         }
@@ -1616,13 +1616,13 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final List<OntologyProperty> getPropertiesByIntent(String intent) {
-        return getPropertiesByIntent(intent, null, null);
+        return getPropertiesByIntent(intent, null);
     }
 
     @Override
-    public List<OntologyProperty> getPropertiesByIntent(String intent, User user, String workspaceId) {
+    public List<OntologyProperty> getPropertiesByIntent(String intent, String workspaceId) {
         List<OntologyProperty> results = new ArrayList<>();
-        for (OntologyProperty property : getProperties(user, workspaceId)) {
+        for (OntologyProperty property : getProperties(workspaceId)) {
             String[] propertyIntents = property.getIntents();
             if (Arrays.asList(propertyIntents).contains(intent)) {
                 results.add(property);
@@ -1634,23 +1634,23 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final ClientApiOntology getClientApiObject() {
-        return getClientApiObject(null, null);
+        return getClientApiObject(null);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public ClientApiOntology getClientApiObject(User user, String workspaceId) {
+    public ClientApiOntology getClientApiObject(String workspaceId) {
         Object[] results = ExecutorServiceUtil.runAllAndWait(
                 () -> {
-                    Iterable<Concept> concepts = getConceptsWithProperties(user, workspaceId);
+                    Iterable<Concept> concepts = getConceptsWithProperties(workspaceId);
                     return Concept.toClientApiConcepts(concepts);
                 },
                 () -> {
-                    Iterable<OntologyProperty> properties = getProperties(user, workspaceId);
+                    Iterable<OntologyProperty> properties = getProperties(workspaceId);
                     return OntologyProperty.toClientApiProperties(properties);
                 },
                 () -> {
-                    Iterable<Relationship> relationships = getRelationships(user, workspaceId);
+                    Iterable<Relationship> relationships = getRelationships(workspaceId);
                     return Relationship.toClientApiRelationships(relationships);
                 }
         );
@@ -1715,25 +1715,25 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes) {
-        addConceptTypeFilterToQuery(query, conceptTypeIri, includeChildNodes, null, null);
+        addConceptTypeFilterToQuery(query, conceptTypeIri, includeChildNodes, null);
     }
 
     @Override
-    public void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes, User user, String workspaceId) {
+    public void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes, String workspaceId) {
         checkNotNull(conceptTypeIri, "conceptTypeIri cannot be null");
         List<ElementTypeFilter> filters = new ArrayList<>();
         filters.add(new ElementTypeFilter(conceptTypeIri, includeChildNodes));
-        addConceptTypeFilterToQuery(query, filters, user, workspaceId);
+        addConceptTypeFilterToQuery(query, filters, workspaceId);
     }
 
     @Deprecated
     @Override
     public final void addConceptTypeFilterToQuery(Query query, Collection<ElementTypeFilter> filters) {
-        addConceptTypeFilterToQuery(query, filters, null, null);
+        addConceptTypeFilterToQuery(query, filters, null);
     }
 
     @Override
-    public void addConceptTypeFilterToQuery(Query query, Collection<ElementTypeFilter> filters, User user, String workspaceId) {
+    public void addConceptTypeFilterToQuery(Query query, Collection<ElementTypeFilter> filters, String workspaceId) {
         checkNotNull(query, "query cannot be null");
         checkNotNull(filters, "filters cannot be null");
 
@@ -1744,13 +1744,13 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         Set<String> conceptIds = new HashSet<>(filters.size());
 
         for (ElementTypeFilter filter : filters) {
-            Concept concept = getConceptByIRI(filter.iri, user, workspaceId);
+            Concept concept = getConceptByIRI(filter.iri, workspaceId);
             checkNotNull(concept, "Could not find concept with IRI: " + filter.iri);
 
             conceptIds.add(concept.getIRI());
 
             if (filter.includeChildNodes) {
-                Set<Concept> childConcepts = getConceptAndAllChildren(concept, user, workspaceId);
+                Set<Concept> childConcepts = getConceptAndAllChildren(concept, workspaceId);
                 conceptIds.addAll(childConcepts.stream().map(Concept::getIRI).collect(Collectors.toSet()));
             }
         }
@@ -1761,25 +1761,25 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Deprecated
     @Override
     public final void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes) {
-        addEdgeLabelFilterToQuery(query, edgeLabel, includeChildNodes, null, null);
+        addEdgeLabelFilterToQuery(query, edgeLabel, includeChildNodes, null);
     }
 
     @Override
-    public void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes, User user, String workspaceId) {
+    public void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes, String workspaceId) {
         checkNotNull(edgeLabel, "edgeLabel cannot be null");
         List<ElementTypeFilter> filters = new ArrayList<>();
         filters.add(new ElementTypeFilter(edgeLabel, includeChildNodes));
-        addEdgeLabelFilterToQuery(query, filters, user, workspaceId);
+        addEdgeLabelFilterToQuery(query, filters, workspaceId);
     }
 
     @Deprecated
     @Override
     public final void addEdgeLabelFilterToQuery(Query query, Collection<ElementTypeFilter> filters) {
-        addEdgeLabelFilterToQuery(query, filters, null, null);
+        addEdgeLabelFilterToQuery(query, filters, null);
     }
 
     @Override
-    public void addEdgeLabelFilterToQuery(Query query, Collection<ElementTypeFilter> filters, User user, String workspaceId) {
+    public void addEdgeLabelFilterToQuery(Query query, Collection<ElementTypeFilter> filters, String workspaceId) {
         checkNotNull(filters, "filters cannot be null");
 
         if (filters.isEmpty()) {
@@ -1789,21 +1789,19 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         Set<String> edgeIds = new HashSet<>(filters.size());
 
         for (ElementTypeFilter filter : filters) {
-            Relationship relationship = getRelationshipByIRI(filter.iri, user, workspaceId);
+            Relationship relationship = getRelationshipByIRI(filter.iri, workspaceId);
             checkNotNull(relationship, "Could not find edge with IRI: " + filter.iri);
 
             edgeIds.add(relationship.getIRI());
 
             if (filter.includeChildNodes) {
-                Set<Relationship> childRelations = getRelationshipAndAllChildren(relationship, user, workspaceId);
+                Set<Relationship> childRelations = getRelationshipAndAllChildren(relationship, workspaceId);
                 edgeIds.addAll(childRelations.stream().map(Relationship::getIRI).collect(Collectors.toSet()));
             }
         }
 
         query.hasEdgeLabel(edgeIds);
     }
-
-    protected abstract Authorizations getAuthorizations(User user, String workspaceId);
 
     @Override
     public final void publishConcept(Concept concept, User user, String workspaceId) {
@@ -1848,9 +1846,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
 
-    private List<Concept> findLoadedConceptsByIntent(String intent, User user, String workspaceId) {
+    private List<Concept> findLoadedConceptsByIntent(String intent, String workspaceId) {
         List<Concept> results = new ArrayList<>();
-        for (Concept concept : getConceptsWithProperties(user, workspaceId)) {
+        for (Concept concept : getConceptsWithProperties(workspaceId)) {
             String[] conceptIntents = concept.getIntents();
             if (Arrays.asList(conceptIntents).contains(intent)) {
                 results.add(concept);
@@ -1859,9 +1857,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return results;
     }
 
-    private List<Relationship> findLoadedRelationshipsByIntent(String intent, User user, String workspaceId) {
+    private List<Relationship> findLoadedRelationshipsByIntent(String intent, String workspaceId) {
         List<Relationship> results = new ArrayList<>();
-        for (Relationship relationship : getRelationships(user, workspaceId)) {
+        for (Relationship relationship : getRelationships(workspaceId)) {
             String[] relationshipIntents = relationship.getIntents();
             if (Arrays.asList(relationshipIntents).contains(intent)) {
                 results.add(relationship);

@@ -43,7 +43,7 @@ public class VertexFindRelatedSearchRunner extends SearchRunner {
         Set<String> limitConceptIds = new HashSet<>();
 
         if (limitParentConceptId != null) {
-            Set<Concept> limitConcepts = ontologyRepository.getConceptAndAllChildrenByIri(limitParentConceptId, user, searchOptions.getWorkspaceId());
+            Set<Concept> limitConcepts = ontologyRepository.getConceptAndAllChildrenByIri(limitParentConceptId, searchOptions.getWorkspaceId());
             if (limitConcepts == null) {
                 throw new RuntimeException("Bad 'limitParentConceptId', no concept found for id: " +
                         limitParentConceptId);

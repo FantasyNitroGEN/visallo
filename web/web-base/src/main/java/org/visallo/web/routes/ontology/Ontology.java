@@ -27,10 +27,9 @@ public class Ontology implements ParameterizedHandler {
     @Handle
     public ClientApiOntology handle(
             @ActiveWorkspaceId String workspaceId,
-            User user,
             VisalloResponse response) throws Exception {
 
-        ClientApiOntology result = ontologyRepository.getClientApiObject(user, workspaceId);
+        ClientApiOntology result = ontologyRepository.getClientApiObject(workspaceId);
 
         String json = ObjectMapperFactory.getInstance().writeValueAsString(result);
         String eTag = response.generateETag(json.getBytes());

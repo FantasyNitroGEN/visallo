@@ -116,9 +116,9 @@ public class ACLProviderTest {
         when(userWithCommentDeleteAny.getUserId()).thenReturn("USER_WITH_COMMENT_DELETE_ANY");
         when(privilegeRepository.getPrivileges(eq(userWithCommentDeleteAny))).thenReturn(Sets.newHashSet(Privilege.EDIT, Privilege.COMMENT_DELETE_ANY));
 
-        when(ontologyRepository.getConceptByIRI("vertex", user1, "workspace1")).thenReturn(vertexConcept);
-        when(ontologyRepository.getConceptByIRI("parent", user1, "workspace1")).thenReturn(parentConcept);
-        when(ontologyRepository.getRelationshipByIRI("edge", user1, "workspace1")).thenReturn(edgeRelationship);
+        when(ontologyRepository.getConceptByIRI("vertex", "workspace1")).thenReturn(vertexConcept);
+        when(ontologyRepository.getConceptByIRI("parent", "workspace1")).thenReturn(parentConcept);
+        when(ontologyRepository.getRelationshipByIRI("edge", "workspace1")).thenReturn(edgeRelationship);
 
         when(vertexConcept.getParentConceptIRI()).thenReturn("parent");
         when(vertexConcept.getProperties()).thenReturn(

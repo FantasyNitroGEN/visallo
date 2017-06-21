@@ -56,7 +56,7 @@ public abstract class UserPropertyAuthorizationRepositoryBase extends Authorizat
 
     protected void defineAuthorizationsProperty(OntologyRepository ontologyRepository) {
         List<Concept> concepts = new ArrayList<>();
-        concepts.add(ontologyRepository.getConceptByIRI(UserRepository.USER_CONCEPT_IRI, null, null));
+        concepts.add(ontologyRepository.getConceptByIRI(UserRepository.USER_CONCEPT_IRI, null));
         OntologyPropertyDefinition propertyDefinition = new OntologyPropertyDefinition(
                 concepts,
                 AUTHORIZATIONS_PROPERTY_IRI,

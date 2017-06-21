@@ -14,7 +14,6 @@ import org.visallo.core.model.properties.types.JsonSingleValueVisalloProperty;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.product.WorkProductElements;
-import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.PropertyType;
 
 import java.util.ArrayList;
@@ -35,14 +34,12 @@ public class GraphWorkProduct extends WorkProductElements {
     }
 
     private void addEdgePositionToOntology(OntologyRepository ontologyRepository) {
-        User systemUser = getUserRepository().getSystemUser();
-
-        OntologyProperty property = ontologyRepository.getPropertyByIRI(ENTITY_POSITION.getPropertyName(), systemUser, null);
+        OntologyProperty property = ontologyRepository.getPropertyByIRI(ENTITY_POSITION.getPropertyName(), null);
         if (property != null) {
             return;
         }
 
-        Relationship productToEntityRelationship = ontologyRepository.getRelationshipByIRI(WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI, systemUser, null);
+        Relationship productToEntityRelationship = ontologyRepository.getRelationshipByIRI(WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI, null);
         checkNotNull(productToEntityRelationship, "Cannot find relationship: " + WORKSPACE_PRODUCT_TO_ENTITY_RELATIONSHIP_IRI);
         OntologyPropertyDefinition propertyDefinition = new OntologyPropertyDefinition(
                 new ArrayList<>(),
@@ -52,7 +49,7 @@ public class GraphWorkProduct extends WorkProductElements {
         );
         propertyDefinition.setTextIndexHints(TextIndexHint.NONE);
         propertyDefinition.getRelationships().add(productToEntityRelationship);
-        ontologyRepository.getOrCreateProperty(propertyDefinition, systemUser, null);
+        ontologyRepository.getOrCreateProperty(propertyDefinition, getUserRepository().getSystemUser(), null);
         ontologyRepository.clearCache();
     }
 
