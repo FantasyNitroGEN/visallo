@@ -1,15 +1,15 @@
 define([
     'flight/lib/component',
     'util/withDropdown',
-    'tpl!./statementForm',
-    'tpl!./relationship-options',
-    'util/withDataRequest'
+    './statementForm.hbs',
+    'util/withDataRequest',
+    'util/ontology/relationshipSelect'
 ], function(
     defineComponent,
     withDropdown,
     statementFormTemplate,
-    relationshipTypeTemplate,
-    withDataRequest) {
+    withDataRequest,
+    RelationshipSelect) {
     'use strict';
 
     return defineComponent(StatementForm, withDropdown, withDataRequest);
@@ -24,8 +24,9 @@ define([
             createStatementButtonSelector: '.create-statement',
             statementLabelSelector: '.statement-label',
             invertAnchorSelector: 'a.invert',
-            relationshipSelector: 'select',
-            buttonDivSelector: '.buttons'
+            relationshipSelector: '.selector',
+            buttonDivSelector: '.buttons',
+            manualOpen: true
         });
 
         this.after('initialize', function() {
@@ -36,6 +37,7 @@ define([
                 dest: this.attr.destTerm.text()
             }));
 
+            this.on('relationshipSelected', this.onRelationshipSelected);
             this.on('visibilitychange', this.onVisibilityChange);
             this.on('justificationchange', this.onJustificationChange);
 
@@ -53,9 +55,6 @@ define([
                 invertAnchorSelector: this.onInvert
             });
             this.on('opened', this.onOpened);
-            this.on('keyup', {
-                relationshipSelector: this.onInputKeyUp
-            })
         });
 
         this.after('teardown', function() {
@@ -63,14 +62,10 @@ define([
             this.attr.destTerm.removeClass('focused');
         });
 
-        this.onInputKeyUp = function(event) {
-            if (!this.select('createStatementButtonSelector').is(':disabled')) {
-                switch (event.which) {
-                    case $.ui.keyCode.ENTER:
-                        this.onCreateStatement(event);
-                }
-            }
-        }
+        this.onRelationshipSelected = function(event, data) {
+            this.relationship = data && data.relationship ? data.relationship.title : null;
+            this.checkValid();
+        };
 
         this.onVisibilityChange = function(event, data) {
             this.visibilitySource = data;
@@ -87,7 +82,7 @@ define([
 
             if (this.visibilitySource && this.visibilitySource.valid &&
                 this.justification && this.justification.valid &&
-                this.select('relationshipSelector').val().length) {
+                this.relationship) {
                 button.removeAttr('disabled');
             } else {
                 button.attr('disabled', true);
@@ -116,15 +111,8 @@ define([
                 });
         };
 
-        this.onSelection = function(e) {
-            this.realtionshipTypeSelection = this.select('relationshipSelector').val();
-            this.checkValid();
-        };
-
         this.onOpened = function() {
-            this.select('relationshipSelector')
-                .on('change', this.onSelection.bind(this))
-                .focus();
+            this.select('relationshipSelector').find('input').focus();
         };
 
         this.onInvert = function(e) {
@@ -133,9 +121,11 @@ define([
             var sourceTerm = this.attr.sourceTerm;
             this.attr.sourceTerm = this.attr.destTerm;
             this.attr.destTerm = sourceTerm;
+            this.relationship = null;
 
             this.select('formSelector').toggleClass('invert');
             this.getRelationshipLabels();
+            this.checkValid();
         };
 
         this.onCreateStatement = function(event) {
@@ -145,7 +135,7 @@ define([
                         this.attr.sourceTerm.data('vertex-id'),
                     inVertexId: this.attr.destTerm.data('info').resolvedToVertexId ||
                         this.attr.destTerm.data('vertex-id'),
-                    predicateLabel: this.select('relationshipSelector').val(),
+                    predicateLabel: this.relationship,
                     visibilitySource: this.visibilitySource.value
                 };
 
@@ -177,52 +167,29 @@ define([
 
         this.getRelationshipLabels = function() {
             var self = this,
-                sourceConceptTypeId = this.attr.sourceTerm.data('info')['http://visallo.org#conceptType'],
-                destConceptTypeId = this.attr.destTerm.data('info')['http://visallo.org#conceptType'];
-
-            this.dataRequest('ontology', 'relationshipsBetween', sourceConceptTypeId, destConceptTypeId)
-                .done(function(relationships) {
-                    self.displayRelationships(relationships);
-                });
-        };
-
-        this.displayRelationships = function(relationships) {
-            var self = this;
+                sourceConcept = this.attr.sourceTerm.data('info')['http://visallo.org#conceptType'],
+                targetConcept = this.attr.destTerm.data('info')['http://visallo.org#conceptType'];
 
             this.visibilitySource = { source: '', valid: true };
-            this.dataRequest('ontology', 'relationships')
-                .done(function(ontologyRelationships) {
-                    var relationshipsTpl = [];
 
-                    relationships.forEach(function(relationship) {
-                        var ontologyRelationship = ontologyRelationships.byTitle[relationship.title];
-                        if (ontologyRelationship && ontologyRelationship.userVisible !== false) {
-                            relationshipsTpl.push({
-                                title: relationship.title,
-                                displayName: ontologyRelationship.displayName
-                            });
-                        }
-                    });
+            require([
+                'util/visibility/edit',
+                'detail/dropdowns/propertyForm/justification'
+            ], function(Visibility, Justification) {
 
-                    if (relationshipsTpl.length) {
-                        require([
-                            'util/visibility/edit',
-                            'detail/dropdowns/propertyForm/justification'
-                        ], function(Visibility, Justification) {
-
-                            Visibility.attachTo(self.$node.find('.visibility'), {
-                                value: ''
-                            });
-
-                            Justification.attachTo(self.$node.find('.justification'));
-                        });
-                    } else {
-                        self.$node.find('.visibility,.justification').teardownAllComponents().empty();
-                    }
-
-                    self.select('relationshipSelector')
-                        .html(relationshipTypeTemplate({ relationships: relationshipsTpl }));
+                Visibility.attachTo(self.$node.find('.visibility'), {
+                    value: ''
                 });
+
+                Justification.attachTo(self.$node.find('.justification'));
+
+                const relationshipNode = self.select('relationshipSelector');
+                relationshipNode.trigger('limitParentConceptId', { sourceConcept, targetConcept });
+                relationshipNode.one('rendered', () => {
+                    requestIdleCallback(() => self.manualOpen())
+                })
+                RelationshipSelect.attachTo(relationshipNode, { sourceConcept, targetConcept });
+            });
         };
     }
 

@@ -9,6 +9,7 @@
  * @attr {boolean} [onlySearchable=false] Only show properties that have searchable attribute equal to true in ontology
  * @attr {boolean} [rollupCompound=true] Hide all dependant properties and only show the compound/parent fields
  * @attr {boolean} [focus=false] Activate the field for focus when finished rendering
+ * @attr {boolean} [clearable=true] Whether the user can clear the value in the field
  * @attr {number} [maxItems=-1] Limit the maximum items that are shown in search list (-1 signifies no limit)
  * @attr {string} [selectedProperty=''] Default the selection to this property IRI
  * @attr {Array.<string>} [unsupportedProperties=[]] Remove these property IRIs from the list
@@ -50,7 +51,8 @@ define([
                 focus,
                 placeholder,
                 onlySearchable,
-                showAdminConcepts
+                showAdminConcepts,
+                clearable
             } = this.attr;
 
             if (onlySearchable === true) {
@@ -65,7 +67,8 @@ define([
                 .params({
                     filter: { ...filter, rollupCompound },
                     autofocus: focus === true,
-                    placeholder
+                    placeholder,
+                    clearable
                 })
                 .behavior({
                     onSelected: (attacher, property) => {

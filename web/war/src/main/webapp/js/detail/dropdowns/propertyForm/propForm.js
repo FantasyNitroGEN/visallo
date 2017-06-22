@@ -84,7 +84,6 @@ define([
 
             this.select('saveButtonSelector').attr('disabled', true);
             this.select('deleteButtonSelector').hide();
-            this.select('saveButtonSelector').hide();
 
             if (this.attr.property) {
                 this.trigger('propertyselected', {
@@ -116,17 +115,24 @@ define([
                 filter.conceptId = conceptType;
             }
 
-            PropertySelector.attachTo(this.select('propertyListSelector'), {
+            const propertyNode = this.select('propertyListSelector');
+            propertyNode.one('rendered', () => {
+                this.on('opened', () => {
+                    propertyNode.find('input').focus()
+                })
+                _.defer(() => {
+                    this.manualOpen();
+                })
+            });
+            PropertySelector.attachTo(propertyNode, {
                 filter: {
                     conceptId: this.attr.data.conceptType,
                     relationshipId: this.attr.data.label,
                     addable: true
                 },
-                focus: true,
+                clearable: false,
                 placeholder: i18n('property.form.field.selection.placeholder')
             });
-
-            this.manualOpen();
         };
 
         this.onVertexSelected = function(event, data) {
@@ -228,10 +234,17 @@ define([
             var self = this,
                 property = data.property,
                 disablePreviousValuePrompt = data.disablePreviousValuePrompt,
-                propertyName = property.title,
+                propertyName = property && property.title,
                 config = self.select('configurationSelector'),
                 visibility = self.select('visibilitySelector'),
                 justification = self.select('justificationSelector');
+
+            if (!property) {
+                config.hide();
+                visibility.hide();
+                justification.hide();
+                return;
+            }
 
             this.currentProperty = property;
             this.$node.find('.errors').hide();
@@ -290,7 +303,6 @@ define([
 
                     this.select('justificationSelector').hide();
                     this.select('visibilitySelector').hide();
-                    this.select('saveButtonSelector').hide();
                     this.select('previousValuesDropdownSelector').hide();
 
                     return;
@@ -302,7 +314,6 @@ define([
             this.select('previousValuesDropdownSelector').hide();
             this.select('justificationSelector').show();
             this.select('visibilitySelector').show();
-            this.select('saveButtonSelector').show();
 
             var deleteButton = this.select('deleteButtonSelector')
                 .toggle(

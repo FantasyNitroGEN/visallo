@@ -31,6 +31,15 @@ function(jQuery,
     // Debug retina/non-retina by changing to 1/2
     // window.devicePixelRatio = 1;
 
+    window.requestIdleCallback =
+        typeof window === 'undefined' ?
+        function() { } :
+        (
+            window.requestIdleCallback ||
+            function(callback) {
+                setTimeout(callback, 1000 / 60);
+            }
+        );
     window.requestAnimationFrame =
         typeof window === 'undefined' ?
         function() { } :

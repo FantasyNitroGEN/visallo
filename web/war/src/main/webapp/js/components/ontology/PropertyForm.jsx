@@ -47,7 +47,7 @@ define([
                         <option value="bytes">Bytes</option>
                     </select>
 
-                    <div style={{textAlign: 'right'}}>
+                    <div className="base-select-form-buttons" style={{textAlign: 'right'}}>
                     <button
                         onClick={this.props.onCancel}
                         className="btn btn-link btn-small"

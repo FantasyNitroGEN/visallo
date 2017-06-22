@@ -152,6 +152,7 @@ define([
         },
         onNewOptionClick(option) {
             this.setState({ creating: option[this.props.labelKey] })
+            this.props.onSelected();
         }
     });
 

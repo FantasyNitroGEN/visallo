@@ -31,7 +31,7 @@ define([
             if (this.attr.maxItems) console.warn('maxItems is no longer supported');
             var self = this;
             this.on('limitParentConceptId', function(event, data) {
-                const { conceptId: concept, sourceConceptId: sourceConcept, targetConceptId: targetConcept } = data;
+                const { conceptId: concept, sourceConcept, targetConcept } = data;
                 self.attacher.params({ concept, sourceConcept, targetConcept }).attach();
             })
             this.on('selectRelationshipId', function(event, data) {
