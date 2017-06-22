@@ -6,7 +6,7 @@
     <parent>
         <artifactId>visallo-tools-group</artifactId>
         <groupId>org.visallo</groupId>
-        <version>3.1.4-SNAPSHOT</version>
+        <version>3.1.4</version>
     </parent>
 
     <artifactId>visallo-tools-run-gpw</artifactId>
