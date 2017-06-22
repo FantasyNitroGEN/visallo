@@ -440,7 +440,7 @@ function(jQuery,
     function lockDownUnderscore(_) {
         Object.defineProperty(window, '_', {
             value: _,
-            writeable: false
+            writable: false
         });
     }
 });
