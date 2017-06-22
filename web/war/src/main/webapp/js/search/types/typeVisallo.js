@@ -24,6 +24,7 @@ define([
         });
 
         this.after('initialize', function() {
+            var self = this;
             this.currentFilters = {};
 
             this.on('filterschange', function(event, data) {
@@ -33,6 +34,10 @@ define([
             this.on('queryupdated', this.onQueryUpdated);
             this.on('clearSearch', this.onClearSearch);
             this.on('infiniteScrollRequest', this.onInfiniteScrollRequest);
+
+            this.dataRequest('config', 'properties').done(function(configProperties) {
+                self.exactMatch = (configProperties['search.exactMatch'] === 'true');
+            })
         });
 
 
@@ -69,12 +74,18 @@ define([
         };
 
         this.onQueryUpdated = function(event, data) {
-            var self = this;
-            this.currentQuery = data.value;
+            var self = this,
+                query = data.value;
+
+            if (query && query !== '*' && this.exactMatch) {
+                query = '\"' + query + '\"'
+            }
+
+            this.currentQuery = query;
             this.currentFilters = data.filters;
             this.processPropertyFilters().done(function() {
                 var options = {
-                    query: data.value,
+                    query: query,
                     conceptFilter: data.filters.conceptFilter,
                     propertyFilters: data.filters.propertyFilters,
                     otherFilters: data.filters.otherFilters,
@@ -107,7 +118,11 @@ define([
             var self = this,
                 query = data.value;
 
-            this.currentQuery = data.value;
+            if (query && query !== '*' && this.exactMatch) {
+                query = '\"' + query + '\"';
+            }
+
+            this.currentQuery = query;
             this.currentFilters = data.filters;
 
             this.processPropertyFilters().then(function() {
