@@ -1,3 +1,23 @@
+v3.1.4
+==================
+
+## Changed
+
+* Can now set entity visibility in constructor.
+
+## Fixed
+
+* Resolved entities didn&#39;t open correctly from the Element Inspector
+
+## Documentation
+
+* Update logout docs to point to update example
+
+## Deprecated
+
+* 4 methods in the EntityBuilder
+
+
 v3.1.3
 ==================
 
