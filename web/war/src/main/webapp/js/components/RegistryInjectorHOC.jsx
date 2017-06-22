@@ -24,7 +24,8 @@ define([
                 $(document).off('extensionsChanged.registryInjector');
             },
             render() {
-                return (<WrappedComponent {...this.props} registry={registry.extensionsForPoints(identifiers)} />);
+                // Ref used by DroppableHOC
+                return (<WrappedComponent ref="wrapped" {...this.props} registry={registry.extensionsForPoints(identifiers)} />);
             }
         })
 
