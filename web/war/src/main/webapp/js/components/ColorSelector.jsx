@@ -42,21 +42,22 @@ define([
             const black = this.isBlack();
             const color = colorjs(value);
             const hue = color.getHue();
+            const colorStyle = `hsl(${hue}, ${saturation * 100}%, ${lightness * 100}%);`
             const style = black ? '' : `
-                .color-selector input[type=range]::-webkit-slider-thumb {
-                    background: ${`hsl(${hue}, ${saturation * 100}%, ${lightness * 100}%)`};
-                }`;
+                .color-selector input[type=range]::-moz-range-thumb { background: ${colorStyle} }
+                .color-selector input[type=range]::-ms-thumb { background: ${colorStyle} }
+                .color-selector input[type=range]::-webkit-slider-thumb { background: ${colorStyle} }`;
             const percent = hue / 360;
             const shade = black ? '' : _.find(shades, s => hue < s.s).v;
 
             return (
                 <div className={`color-selector ${black ? 'black' : ''}`} style={{ display: 'flex' }}>
                     <div title="Set to Black" className="black">
-                        <button onMouseDown={this.onMouseDown}>Set to Black</button>
+                        <button onClick={this.onClickBlack} onMouseDown={this.onMouseDownBlack}>Set to Black</button>
                     </div>
                     <div title="Set to Color" className="gradient" style={{position: 'relative'}}>
                         <style>{style}</style>
-                        <input data-color="Color" value={hue} min="0" max="359" step="1" onChange={this.onChange} type="range" />
+                        <input value={hue} min="0" max="359" step="1" onChange={this.onChange} type="range" />
                         { black || !colorTooltip ? null : (
                             <div className="tooltip bottom" style={{
                                 opacity: 1,
@@ -76,7 +77,12 @@ define([
         isBlack() {
             return this.state.value === BLACK;
         },
-        onMouseDown() {
+        onClickBlack() {
+            if (!this.isBlack()) {
+                this.update(BLACK);
+            }
+        },
+        onMouseDownBlack() {
             if (!this.isBlack()) {
                 this.update(BLACK);
             }
