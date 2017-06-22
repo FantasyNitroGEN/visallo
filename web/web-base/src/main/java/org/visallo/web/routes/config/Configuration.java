@@ -19,7 +19,7 @@ public class Configuration implements ParameterizedHandler {
     @Handle
     public JSONObject handle(
             ResourceBundle resourceBundle,
-            @ActiveWorkspaceId String workspaceId
+            @ActiveWorkspaceId(required = false) String workspaceId
     ) throws Exception {
         return this.configuration.toJSON(resourceBundle, workspaceId);
     }
