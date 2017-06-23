@@ -133,7 +133,7 @@ define([], function() {
                     css: {
                         'background-color': 'transparent',
                         'background-opacity': 0,
-                        'overlay-color': 'none',
+                        'overlay-color': 'transparent',
                         'overlay-padding': 0,
                         'overlay-opacity': 0,
                         'border-width': 0
@@ -151,7 +151,7 @@ define([], function() {
                         'text-valign': 'center',
                         'font-size': 20,
                         color: 'white',
-                        'text-outline-color': 'none',
+                        'text-outline-color': 'transparent',
                         'text-outline-width': 0,
                         content: 'data(label)',
                         events: 'no',
