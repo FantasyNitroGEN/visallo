@@ -41,7 +41,14 @@ define([
     const propTypesElementObjects = { vertices: PropTypes.object, edges: PropTypes.object };
 
     let memoizeForStorage = {};
-    const memoizeClear = () => { memoizeForStorage = {}; }
+    const memoizeClear = (...prefixes) => {
+        if (prefixes.length) {
+            memoizeForStorage = _.omit(memoizeForStorage, (v, k) =>
+                _.any(prefixes, prefix => k.indexOf(prefix) === 0));
+        } else {
+            memoizeForStorage = {};
+        }
+    }
     const memoizeFor = function(key, elements, fn, idFn) {
         if (!key) throw new Error('Cache key must be specified');
         if (!elements) throw new Error('Valid elements should be provided');
@@ -175,11 +182,7 @@ define([
             }
             if (nextProps.registry !== this.props.registry) {
                 memoizeClear();
-            }
-            if (nextProps.concepts !== this.props.concepts ||
-                nextProps.relationships !== this.props.relationships) {
-                memoizeClear('vertexToCyNode');
-            }
+            }            
             const newExtendedData = nextProps.product.extendedData;
             const oldExtendedData = this.props.product.extendedData;
             if (newExtendedData) {
