@@ -1,25 +1,20 @@
 package org.visallo.web.routes.ontology;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.ontology.*;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiOntology;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class OntologyRelationshipSave implements ParameterizedHandler {
+public class OntologyRelationshipSave extends OntologyBase {
     private final OntologyRepository ontologyRepository;
     private final WorkQueueRepository workQueueRepository;
 
@@ -28,6 +23,7 @@ public class OntologyRelationshipSave implements ParameterizedHandler {
             final OntologyRepository ontologyRepository,
             final WorkQueueRepository workQueueRepository
     ) {
+        super(ontologyRepository);
         this.ontologyRepository = ontologyRepository;
         this.workQueueRepository = workQueueRepository;
     }
@@ -44,8 +40,8 @@ public class OntologyRelationshipSave implements ParameterizedHandler {
             User user) throws Exception {
 
 
-        List<Concept> domainConcepts = getConceptsForIris(sourceIris, workspaceId);
-        List<Concept> rangeConcepts = getConceptsForIris(targetIris, workspaceId);
+        List<Concept> domainConcepts = ontologyIrisToConcepts(sourceIris, workspaceId);
+        List<Concept> rangeConcepts = ontologyIrisToConcepts(targetIris, workspaceId);
 
         if (relationshipIri == null) {
             relationshipIri = ontologyRepository.generateDynamicIri(Relationship.class, displayName, workspaceId);
@@ -66,17 +62,5 @@ public class OntologyRelationshipSave implements ParameterizedHandler {
         workQueueRepository.pushOntologyRelationshipsChange(workspaceId, relationship.getId());
 
         return relationship.toClientApi();
-    }
-
-    private List<Concept> getConceptsForIris(String[] iris, String workspaceId) {
-        return iris == null ? new ArrayList<>() : Arrays.stream(iris)
-            .map(iri -> {
-                Concept concept = ontologyRepository.getConceptByIRI(iri, workspaceId);
-                if (concept == null) {
-                    throw new VisalloException("Unable to load concept with IRI: " + iri);
-                }
-                return concept;
-            })
-            .collect(Collectors.toList());
     }
 }

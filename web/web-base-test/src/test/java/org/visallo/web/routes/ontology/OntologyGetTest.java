@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyPropertyDefinition;
 import org.visallo.web.clientapi.model.ClientApiOntology;
@@ -15,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -68,17 +70,32 @@ public class OntologyGetTest extends OntologyRouteTestBase {
 
     @Test
     public void testGetPublicOntologyElementsWithUnknownConcept() throws Exception {
-        doRouteTest("unknown-iri", 0, null, 0, null, 0);
+        try {
+            doRouteTest("unknown-iri", 0, null, 0, null, 0);
+            fail("Expected route to fail due to unknown concept iri");
+        } catch (VisalloException ve) {
+            assertEquals("Unable to load concept with IRI: unknown-iri", ve.getMessage());
+        }
     }
 
     @Test
     public void testGetPublicOntologyElementsWithUnknownRelationship() throws Exception {
-        doRouteTest(null, 0, "unknown-iri", 0, null, 0);
+        try {
+            doRouteTest(null, 0, "unknown-iri", 0, null, 0);
+            fail("Expected route to fail due to unknown relationship iri");
+        } catch (VisalloException ve) {
+            assertEquals("Unable to load relationship with IRI: unknown-iri", ve.getMessage());
+        }
     }
 
     @Test
     public void testGetPublicOntologyElementsWithUnknownProperty() throws Exception {
-        doRouteTest(null, 0, null, 0, "unknown-iri", 0);
+        try {
+            doRouteTest(null, 0, null, 0, "unknown-iri", 0);
+            fail("Expected route to fail due to unknown property iri");
+        } catch (VisalloException ve) {
+            assertEquals("Unable to load property with IRI: unknown-iri", ve.getMessage());
+        }
     }
 
     private void doRouteTest(String conceptIri, int expectedConcepts, String relationshipIri, int expectedRelationships, String propertyIri, int expectedProperties) throws Exception {
@@ -88,7 +105,6 @@ public class OntologyGetTest extends OntologyRouteTestBase {
                 relationshipIri == null ? null : new String[]{relationshipIri},
                 WORKSPACE_ID
         );
-
 
         assertEquals(expectedConcepts, response.getConcepts().size());
         if (expectedConcepts != 0) {

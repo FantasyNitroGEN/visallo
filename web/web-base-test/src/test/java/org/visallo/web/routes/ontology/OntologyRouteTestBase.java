@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-public class OntologyRouteTestBase extends RouteTestBase {
+public abstract class OntologyRouteTestBase extends RouteTestBase {
     static final String WORKSPACE_ID = "junit-workspace";
     static final String PUBLIC_CONCEPT_IRI = "public-concept-a";
     static final String PUBLIC_RELATIONSHIP_IRI = "public-relationship";

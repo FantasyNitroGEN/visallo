@@ -1,7 +1,6 @@
 package org.visallo.web.routes.ontology;
 
 import com.google.inject.Inject;
-import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
@@ -14,13 +13,10 @@ import org.visallo.web.clientapi.model.ClientApiOntology;
 import org.visallo.web.clientapi.model.PropertyType;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
-public class OntologyPropertySave implements ParameterizedHandler {
+public class OntologyPropertySave extends OntologyBase {
     private final OntologyRepository ontologyRepository;
     private final WorkQueueRepository workQueueRepository;
 
@@ -29,6 +25,7 @@ public class OntologyPropertySave implements ParameterizedHandler {
             final OntologyRepository ontologyRepository,
             final WorkQueueRepository workQueueRepository
     ) {
+        super(ontologyRepository);
         this.ontologyRepository = ontologyRepository;
         this.workQueueRepository = workQueueRepository;
     }
@@ -43,8 +40,8 @@ public class OntologyPropertySave implements ParameterizedHandler {
             @ActiveWorkspaceId String workspaceId,
             User user) throws Exception {
 
-        List<Concept> concepts = ontologyIrisToObjects(conceptIris, ontologyRepository::getConceptByIRI, "concept", workspaceId);
-        List<Relationship> relationships = ontologyIrisToObjects(relationshipIris, ontologyRepository::getRelationshipByIRI, "relationship", workspaceId);
+        List<Concept> concepts = ontologyIrisToConcepts(conceptIris, workspaceId);
+        List<Relationship> relationships = ontologyIrisToRelationships(relationshipIris, workspaceId);
 
         PropertyType type = convertDataTypeStringToPropertyType(dataType);
 
@@ -69,22 +66,6 @@ public class OntologyPropertySave implements ParameterizedHandler {
         workQueueRepository.pushOntologyPropertiesChange(workspaceId, property.getId());
 
         return property.toClientApi();
-    }
-
-    private <T> List<T> ontologyIrisToObjects(
-            String[] iris,
-            BiFunction<String, String, T> getter,
-            String ontologyObjectType,
-            String workspaceId
-    ) {
-        return iris == null ? new ArrayList<>() : Arrays.stream(iris).map(iri -> {
-                T ontologyObject = getter.apply(iri, workspaceId);
-                if (ontologyObject == null) {
-                    throw new VisalloException("Unable to load " + ontologyObjectType + " with IRI: " + iri);
-                }
-                return ontologyObject;
-            })
-            .collect(Collectors.toList());
     }
 
     private PropertyType convertDataTypeStringToPropertyType(String dataType) {
