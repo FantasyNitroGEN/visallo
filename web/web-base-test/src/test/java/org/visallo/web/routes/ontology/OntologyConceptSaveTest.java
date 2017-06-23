@@ -37,9 +37,7 @@ public class OntologyConceptSaveTest extends RouteTestBase {
 
     private OntologyConceptSave route;
 
-    private Authorizations authorizations;
-
-    Concept thingConcept;
+    private Concept thingConcept;
 
     @Mock
     private PrivilegeRepository privilegeRepository;
@@ -70,7 +68,7 @@ public class OntologyConceptSaveTest extends RouteTestBase {
 
         ontologyRepository.getOrCreateConcept(thingConcept, PUBLIC_CONCEPT_IRI, "Public Concept", null, systemUser, null);
 
-        authorizations = graph.createAuthorizations(WORKSPACE_ID);
+        graph.createAuthorizations(WORKSPACE_ID);
         route = new OntologyConceptSave(ontologyRepository, workQueueRepository);
     }
 

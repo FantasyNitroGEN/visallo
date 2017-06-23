@@ -6,6 +6,7 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.TextIndexHint;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.*;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.User;
@@ -16,6 +17,7 @@ import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 public class OntologyPropertySave implements ParameterizedHandler {
@@ -41,15 +43,11 @@ public class OntologyPropertySave implements ParameterizedHandler {
             @ActiveWorkspaceId String workspaceId,
             User user) throws Exception {
 
-        List<Concept> concepts = conceptIris == null ? new ArrayList<>() : Arrays.stream(conceptIris)
-                .map(iri -> ontologyRepository.getConceptByIRI(iri, workspaceId))
-                .collect(Collectors.toList());
+        List<Concept> concepts = ontologyIrisToObjects(conceptIris, ontologyRepository::getConceptByIRI, "concept", workspaceId);
+        List<Relationship> relationships = ontologyIrisToObjects(relationshipIris, ontologyRepository::getRelationshipByIRI, "relationship", workspaceId);
 
-        List<Relationship> relationships = relationshipIris == null ? new ArrayList<>() : Arrays.stream(relationshipIris)
-                .map(iri -> ontologyRepository.getRelationshipByIRI(iri, workspaceId))
-                .collect(Collectors.toList());
+        PropertyType type = convertDataTypeStringToPropertyType(dataType);
 
-        PropertyType type = PropertyType.valueOf(dataType.toUpperCase());
         if (propertyIri == null) {
             propertyIri = ontologyRepository.generateDynamicIri(OntologyProperty.class, displayName, workspaceId);
         }
@@ -71,5 +69,31 @@ public class OntologyPropertySave implements ParameterizedHandler {
         workQueueRepository.pushOntologyPropertiesChange(workspaceId, property.getId());
 
         return property.toClientApi();
+    }
+
+    private <T> List<T> ontologyIrisToObjects(
+            String[] iris,
+            BiFunction<String, String, T> getter,
+            String ontologyObjectType,
+            String workspaceId
+    ) {
+        return iris == null ? new ArrayList<>() : Arrays.stream(iris).map(iri -> {
+                T ontologyObject = getter.apply(iri, workspaceId);
+                if (ontologyObject == null) {
+                    throw new VisalloException("Unable to load " + ontologyObjectType + " with IRI: " + iri);
+                }
+                return ontologyObject;
+            })
+            .collect(Collectors.toList());
+    }
+
+    private PropertyType convertDataTypeStringToPropertyType(String dataType) {
+        boolean isValid = Arrays.stream(PropertyType.values())
+                .anyMatch(pt -> pt.toString().toLowerCase().equals(dataType.toLowerCase()));
+        if (!isValid) {
+            throw new VisalloException("Unknown property type: " + dataType);
+        }
+
+        return PropertyType.valueOf(dataType.toUpperCase());
     }
 }
