@@ -3,75 +3,31 @@ package org.visallo.web.routes.ontology;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.vertexium.Authorizations;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.lock.NonLockingLockRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepositoryBase;
-import org.visallo.core.model.ontology.Relationship;
-import org.visallo.core.model.user.PrivilegeRepository;
-import org.visallo.core.security.VisalloVisibility;
-import org.visallo.core.user.SystemUser;
-import org.visallo.core.user.User;
-import org.visallo.vertexium.model.ontology.InMemoryOntologyRepository;
 import org.visallo.web.clientapi.model.ClientApiOntology;
 import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.PropertyType;
 import org.visallo.web.clientapi.model.SandboxStatus;
-import org.visallo.web.routes.RouteTestBase;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class OntologyPropertySaveTest extends RouteTestBase {
-    private static final String WORKSPACE_ID = "junit-workspace";
-    private static final String PUBLIC_CONCEPT_IRI = "public-concept";
-    private static final String PUBLIC_RELATIONSHIP_IRI = "public-relationship";
-
+public class OntologyPropertySaveTest extends OntologyRouteTestBase {
     private OntologyPropertySave route;
-
-    @Mock
-    private PrivilegeRepository privilegeRepository;
 
     @Before
     public void before() throws IOException {
         super.before();
-
-        NonLockingLockRepository nonLockingLockRepository = new NonLockingLockRepository();
-        try {
-            ontologyRepository = new InMemoryOntologyRepository(graph, configuration, nonLockingLockRepository) {
-                @Override
-                protected PrivilegeRepository getPrivilegeRepository() {
-                    return OntologyPropertySaveTest.this.privilegeRepository;
-                }
-            };
-        } catch (Exception e) {
-            throw new VisalloException("Unable to create in memory ontology repository", e);
-        }
-
-        User systemUser = new SystemUser();
-        Authorizations systemAuthorizations = graph.createAuthorizations(VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
-        Concept thingConcept = ontologyRepository.getEntityConcept(null);
-
-        List<Concept> things = Collections.singletonList(thingConcept);
-        Relationship hasEntityRel = ontologyRepository.getOrCreateRelationshipType(null, things, things, "has-entity-iri", true, systemUser, null);
-        hasEntityRel.addIntent("entityHasImage", systemAuthorizations);
-
-        ontologyRepository.getOrCreateConcept(thingConcept, PUBLIC_CONCEPT_IRI, "Public Concept", null, systemUser, null);
-        ontologyRepository.getOrCreateRelationshipType(null, things, things, PUBLIC_RELATIONSHIP_IRI, true, systemUser, null);
-
-        graph.createAuthorizations(WORKSPACE_ID);
         route = new OntologyPropertySave(ontologyRepository, workQueueRepository);
     }
 
@@ -116,13 +72,13 @@ public class OntologyPropertySaveTest extends RouteTestBase {
     @Test(expected = VisalloAccessDeniedException.class)
     public void testSaveNewPropertyWithNoPrivilege() throws Exception {
         route.handle(
-            "New Property",
-            "string",
-            "junit-property",
-            new String[]{PUBLIC_CONCEPT_IRI},
-            new String[]{PUBLIC_RELATIONSHIP_IRI},
-            WORKSPACE_ID,
-            user
+                "New Property",
+                "string",
+                "junit-property",
+                new String[]{PUBLIC_CONCEPT_IRI},
+                new String[]{PUBLIC_RELATIONSHIP_IRI},
+                WORKSPACE_ID,
+                user
         );
     }
 
@@ -130,13 +86,13 @@ public class OntologyPropertySaveTest extends RouteTestBase {
     public void testSaveNewPropertyWithUnknownConcept() throws Exception {
         try {
             route.handle(
-                "New Property",
-                "string",
-                "junit-property",
-                new String[]{"unknown-concept"},
-                new String[]{PUBLIC_RELATIONSHIP_IRI},
-                WORKSPACE_ID,
-                user
+                    "New Property",
+                    "string",
+                    "junit-property",
+                    new String[]{"unknown-concept"},
+                    new String[]{PUBLIC_RELATIONSHIP_IRI},
+                    WORKSPACE_ID,
+                    user
             );
             fail("Expected to raise a VisalloException for unknown concept iri.");
         } catch (VisalloException ve) {
@@ -148,13 +104,13 @@ public class OntologyPropertySaveTest extends RouteTestBase {
     public void testSaveNewPropertyWithUnknownRelationship() throws Exception {
         try {
             route.handle(
-                "New Property",
-                "string",
-                "junit-property",
-                new String[]{PUBLIC_CONCEPT_IRI},
-                new String[]{"unknown-relationship"},
-                WORKSPACE_ID,
-                user
+                    "New Property",
+                    "string",
+                    "junit-property",
+                    new String[]{PUBLIC_CONCEPT_IRI},
+                    new String[]{"unknown-relationship"},
+                    WORKSPACE_ID,
+                    user
             );
             fail("Expected to raise a VisalloException for unknown relationship iri.");
         } catch (VisalloException ve) {
@@ -166,13 +122,13 @@ public class OntologyPropertySaveTest extends RouteTestBase {
     public void testSaveNewPropertyWithUnknownPropertyType() throws Exception {
         try {
             route.handle(
-                "New Property",
-                "unknown-type",
-                "junit-property",
-                new String[]{PUBLIC_CONCEPT_IRI},
-                new String[]{PUBLIC_RELATIONSHIP_IRI},
-                WORKSPACE_ID,
-                user
+                    "New Property",
+                    "unknown-type",
+                    "junit-property",
+                    new String[]{PUBLIC_CONCEPT_IRI},
+                    new String[]{PUBLIC_RELATIONSHIP_IRI},
+                    WORKSPACE_ID,
+                    user
             );
             fail("Expected to raise a VisalloException for unknown property type.");
         } catch (VisalloException ve) {
@@ -185,13 +141,13 @@ public class OntologyPropertySaveTest extends RouteTestBase {
         when(privilegeRepository.hasPrivilege(user, Privilege.ONTOLOGY_ADD)).thenReturn(true);
 
         ClientApiOntology.Property response = route.handle(
-            "New Property",
-            "string",
-            null,
-            new String[]{PUBLIC_CONCEPT_IRI},
-            new String[]{PUBLIC_RELATIONSHIP_IRI},
-            WORKSPACE_ID,
-            user
+                "New Property",
+                "string",
+                null,
+                new String[]{PUBLIC_CONCEPT_IRI},
+                new String[]{PUBLIC_RELATIONSHIP_IRI},
+                WORKSPACE_ID,
+                user
         );
 
         assertTrue(response.getTitle().matches(OntologyRepositoryBase.BASE_OWL_IRI + "/new_property#[a-z0-9]+"));

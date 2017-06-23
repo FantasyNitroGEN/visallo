@@ -3,76 +3,28 @@ package org.visallo.web.routes.ontology;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.vertexium.Authorizations;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.lock.NonLockingLockRepository;
-import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepositoryBase;
 import org.visallo.core.model.ontology.Relationship;
-import org.visallo.core.model.user.PrivilegeRepository;
-import org.visallo.core.security.VisalloVisibility;
-import org.visallo.core.user.SystemUser;
-import org.visallo.core.user.User;
-import org.visallo.vertexium.model.ontology.InMemoryOntologyRepository;
 import org.visallo.web.clientapi.model.ClientApiOntology;
 import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.SandboxStatus;
-import org.visallo.web.routes.RouteTestBase;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class OntologyRelationshipSaveTest extends RouteTestBase {
-    private static final String WORKSPACE_ID = "junit-workspace";
-    private static final String PUBLIC_CONCEPT_A_IRI = "public-concept-a";
-    private static final String PUBLIC_CONCEPT_B_IRI = "public-concept-b";
-    private static final String PUBLIC_RELATIONSHIP_IRI = "public-relationship";
-
+public class OntologyRelationshipSaveTest extends OntologyRouteTestBase {
     private OntologyRelationshipSave route;
-
-    private Authorizations authorizations;
-
-    @Mock
-    private PrivilegeRepository privilegeRepository;
 
     @Before
     public void before() throws IOException {
         super.before();
-
-        NonLockingLockRepository nonLockingLockRepository = new NonLockingLockRepository();
-        try {
-            ontologyRepository = new InMemoryOntologyRepository(graph, configuration, nonLockingLockRepository) {
-                @Override
-                protected PrivilegeRepository getPrivilegeRepository() {
-                    return OntologyRelationshipSaveTest.this.privilegeRepository;
-                }
-            };
-        } catch (Exception e) {
-            throw new VisalloException("Unable to create in memory ontology repository", e);
-        }
-
-        User systemUser = new SystemUser();
-        Authorizations systemAuthorizations = graph.createAuthorizations(VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
-        Concept thingConcept = ontologyRepository.getEntityConcept(null);
-
-        List<Concept> things = Collections.singletonList(thingConcept);
-        Relationship hasEntityRel = ontologyRepository.getOrCreateRelationshipType(null, things, things, "has-entity-iri", true, systemUser, null);
-        hasEntityRel.addIntent("entityHasImage", systemAuthorizations);
-
-        ontologyRepository.getOrCreateConcept(thingConcept, PUBLIC_CONCEPT_A_IRI, "Public A", null, systemUser, null);
-        ontologyRepository.getOrCreateConcept(thingConcept, PUBLIC_CONCEPT_B_IRI, "Public B", null, systemUser, null);
-        ontologyRepository.getOrCreateRelationshipType(null, things, things, PUBLIC_RELATIONSHIP_IRI, true, systemUser, null);
-
-        authorizations = graph.createAuthorizations(WORKSPACE_ID);
         route = new OntologyRelationshipSave(ontologyRepository, workQueueRepository);
     }
 
@@ -83,12 +35,12 @@ public class OntologyRelationshipSaveTest extends RouteTestBase {
         String relationshipIRI = "junit-relationship";
         ClientApiOntology.Relationship response = route.handle(
                 "New Relationship",
-                new String[]{PUBLIC_CONCEPT_A_IRI},
-                new String[]{PUBLIC_CONCEPT_B_IRI},
+                new String[]{PUBLIC_CONCEPT_IRI},
+                new String[]{ontologyRepository.getEntityConcept(null).getIRI()},
                 PUBLIC_RELATIONSHIP_IRI,
                 relationshipIRI,
                 WORKSPACE_ID,
-                authorizations,
+                workspaceAuthorizations,
                 user
         );
 
@@ -98,9 +50,9 @@ public class OntologyRelationshipSaveTest extends RouteTestBase {
         assertEquals("New Relationship", response.getDisplayName());
         assertEquals(SandboxStatus.PRIVATE, response.getSandboxStatus());
         assertEquals(1, response.getDomainConceptIris().size());
-        assertEquals(PUBLIC_CONCEPT_A_IRI, response.getDomainConceptIris().get(0));
+        assertEquals(PUBLIC_CONCEPT_IRI, response.getDomainConceptIris().get(0));
         assertEquals(1, response.getRangeConceptIris().size());
-        assertEquals(PUBLIC_CONCEPT_B_IRI, response.getRangeConceptIris().get(0));
+        assertEquals(ontologyRepository.getEntityConcept(null).getIRI(), response.getRangeConceptIris().get(0));
 
         // make sure it's sandboxed in the ontology now
         Relationship relationship = ontologyRepository.getRelationshipByIRI(relationshipIRI, WORKSPACE_ID);
@@ -115,16 +67,17 @@ public class OntologyRelationshipSaveTest extends RouteTestBase {
         // Make sure we let the front end know
         Mockito.verify(workQueueRepository, Mockito.times(1)).pushOntologyRelationshipsChange(WORKSPACE_ID, relationship.getId());
     }
+
     @Test(expected = VisalloAccessDeniedException.class)
     public void testSaveNewRelationshipNoPrivilege() throws Exception {
         route.handle(
                 "New Relationship",
-                new String[]{PUBLIC_CONCEPT_A_IRI},
-                new String[]{PUBLIC_CONCEPT_B_IRI},
+                new String[]{PUBLIC_CONCEPT_IRI},
+                new String[]{ontologyRepository.getEntityConcept(null).getIRI()},
                 PUBLIC_RELATIONSHIP_IRI,
                 "junit-relationship",
                 WORKSPACE_ID,
-                authorizations,
+                workspaceAuthorizations,
                 user
         );
     }
@@ -135,11 +88,11 @@ public class OntologyRelationshipSaveTest extends RouteTestBase {
             route.handle(
                     "New Relationship",
                     new String[]{"unknown-concept"},
-                    new String[]{PUBLIC_CONCEPT_B_IRI},
+                    new String[]{PUBLIC_CONCEPT_IRI},
                     null,
                     "junit-relationship",
                     WORKSPACE_ID,
-                    authorizations,
+                    workspaceAuthorizations,
                     user
             );
             fail("Expected to raise a VisalloException for unknown concept iri.");
@@ -153,12 +106,12 @@ public class OntologyRelationshipSaveTest extends RouteTestBase {
         try {
             route.handle(
                     "New Relationship",
-                    new String[]{PUBLIC_CONCEPT_A_IRI},
+                    new String[]{PUBLIC_CONCEPT_IRI},
                     new String[]{"unknown-concept"},
                     null,
                     "junit-relationship",
                     WORKSPACE_ID,
-                    authorizations,
+                    workspaceAuthorizations,
                     user
             );
             fail("Expected to raise a VisalloException for unknown concept iri.");
@@ -172,12 +125,12 @@ public class OntologyRelationshipSaveTest extends RouteTestBase {
         try {
             route.handle(
                     "New Relationship",
-                    new String[]{PUBLIC_CONCEPT_A_IRI},
-                    new String[]{PUBLIC_CONCEPT_B_IRI},
+                    new String[]{PUBLIC_CONCEPT_IRI},
+                    new String[]{ontologyRepository.getEntityConcept(null).getIRI()},
                     "unknown-parent-relationship",
                     "junit-relationship",
                     WORKSPACE_ID,
-                    authorizations,
+                    workspaceAuthorizations,
                     user
             );
             fail("Expected to raise a VisalloException for unknown relationship iri.");
@@ -192,12 +145,12 @@ public class OntologyRelationshipSaveTest extends RouteTestBase {
 
         ClientApiOntology.Relationship response = route.handle(
                 "New Relationship",
-                new String[]{PUBLIC_CONCEPT_A_IRI},
-                new String[]{PUBLIC_CONCEPT_B_IRI},
+                new String[]{PUBLIC_CONCEPT_IRI},
+                new String[]{ontologyRepository.getEntityConcept(null).getIRI()},
                 null,
                 null,
                 WORKSPACE_ID,
-                authorizations,
+                workspaceAuthorizations,
                 user
         );
 

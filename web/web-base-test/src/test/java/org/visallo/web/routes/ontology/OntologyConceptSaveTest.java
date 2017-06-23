@@ -3,72 +3,28 @@ package org.visallo.web.routes.ontology;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.vertexium.Authorizations;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.lock.NonLockingLockRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepositoryBase;
-import org.visallo.core.model.ontology.Relationship;
-import org.visallo.core.model.user.PrivilegeRepository;
-import org.visallo.core.security.VisalloVisibility;
-import org.visallo.core.user.SystemUser;
-import org.visallo.core.user.User;
-import org.visallo.vertexium.model.ontology.InMemoryOntologyRepository;
 import org.visallo.web.clientapi.model.ClientApiOntology;
 import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.clientapi.model.SandboxStatus;
-import org.visallo.web.routes.RouteTestBase;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class OntologyConceptSaveTest extends RouteTestBase {
-    private static final String WORKSPACE_ID = "junit-workspace";
-    private static final String PUBLIC_CONCEPT_IRI = "public-concept-a";
-
+public class OntologyConceptSaveTest extends OntologyRouteTestBase {
     private OntologyConceptSave route;
-
-    private Concept thingConcept;
-
-    @Mock
-    private PrivilegeRepository privilegeRepository;
 
     @Before
     public void before() throws IOException {
         super.before();
-
-        NonLockingLockRepository nonLockingLockRepository = new NonLockingLockRepository();
-        try {
-            ontologyRepository = new InMemoryOntologyRepository(graph, configuration, nonLockingLockRepository) {
-                @Override
-                protected PrivilegeRepository getPrivilegeRepository() {
-                    return OntologyConceptSaveTest.this.privilegeRepository;
-                }
-            };
-        } catch (Exception e) {
-            throw new VisalloException("Unable to create in memory ontology repository", e);
-        }
-
-        User systemUser = new SystemUser();
-        Authorizations systemAuthorizations = graph.createAuthorizations(VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
-        thingConcept = ontologyRepository.getEntityConcept(null);
-
-        List<Concept> things = Collections.singletonList(thingConcept);
-        Relationship hasEntityRel = ontologyRepository.getOrCreateRelationshipType(null, things, things, "has-entity-iri", true, systemUser, null);
-        hasEntityRel.addIntent("entityHasImage", systemAuthorizations);
-
-        ontologyRepository.getOrCreateConcept(thingConcept, PUBLIC_CONCEPT_IRI, "Public Concept", null, systemUser, null);
-
-        graph.createAuthorizations(WORKSPACE_ID);
         route = new OntologyConceptSave(ontologyRepository, workQueueRepository);
     }
 
@@ -81,7 +37,7 @@ public class OntologyConceptSaveTest extends RouteTestBase {
         ClientApiOntology.Concept response = route.handle(
                 displayName,
                 conceptIri,
-                thingConcept.getIRI(),
+                ontologyRepository.getEntityConcept(null).getIRI(),
                 "glyph.png",
                 "red",
                 WORKSPACE_ID,
@@ -89,7 +45,7 @@ public class OntologyConceptSaveTest extends RouteTestBase {
         );
 
         assertEquals(conceptIri, response.getId());
-        assertEquals(thingConcept.getIRI(), response.getParentConcept());
+        assertEquals(ontologyRepository.getEntityConcept(null).getIRI(), response.getParentConcept());
         assertEquals(displayName, response.getDisplayName());
         assertEquals("resource?id=new-concept-iri", response.getGlyphIconHref());
         assertEquals("red", response.getColor());
@@ -100,7 +56,7 @@ public class OntologyConceptSaveTest extends RouteTestBase {
         assertNotNull(concept);
         assertEquals("New Concept", concept.getDisplayName());
         assertEquals(SandboxStatus.PRIVATE, concept.getSandboxStatus());
-        assertEquals(thingConcept.getIRI(), ontologyRepository.getParentConcept(concept, WORKSPACE_ID).getIRI());
+        assertEquals(ontologyRepository.getEntityConcept(null).getIRI(), ontologyRepository.getParentConcept(concept, WORKSPACE_ID).getIRI());
 
         // ensure it's not public
         assertNull(ontologyRepository.getConceptByIRI(conceptIri, null));
@@ -114,7 +70,7 @@ public class OntologyConceptSaveTest extends RouteTestBase {
         route.handle(
                 "New Concept",
                 "new-concept-iri",
-                thingConcept.getIRI(),
+                ontologyRepository.getEntityConcept(null).getIRI(),
                 "glyph.png",
                 "red",
                 WORKSPACE_ID,
@@ -149,7 +105,7 @@ public class OntologyConceptSaveTest extends RouteTestBase {
         ClientApiOntology.Concept response = route.handle(
                 "New Concept",
                 null,
-                thingConcept.getIRI(),
+                ontologyRepository.getEntityConcept(null).getIRI(),
                 "glyph.png",
                 "red",
                 WORKSPACE_ID,

@@ -12,6 +12,7 @@ import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class OntologyGet implements ParameterizedHandler {
     private final OntologyRepository ontologyRepository;
@@ -31,27 +32,27 @@ public class OntologyGet implements ParameterizedHandler {
         ClientApiOntology clientApiOntology = new ClientApiOntology();
 
         if (conceptIds != null) {
-            List<ClientApiOntology.Concept> concepts = IterableUtils.toList(ontologyRepository.getConcepts(Lists.newArrayList(conceptIds), workspaceId))
-                    .stream()
+            Iterable<Concept> concepts = ontologyRepository.getConcepts(Lists.newArrayList(conceptIds), workspaceId);
+            List<ClientApiOntology.Concept> clientConcepts = StreamSupport.stream(concepts.spliterator(), false)
                     .map(Concept::toClientApi)
                     .collect(Collectors.toList());
-            clientApiOntology.addAllConcepts(concepts);
+            clientApiOntology.addAllConcepts(clientConcepts);
         }
 
         if (relationshipIds != null) {
-            List<ClientApiOntology.Relationship> relationships = IterableUtils.toList(ontologyRepository.getRelationships(Lists.newArrayList(relationshipIds), workspaceId))
-                    .stream()
+            Iterable<Relationship> relationships = ontologyRepository.getRelationships(Lists.newArrayList(relationshipIds), workspaceId);
+            List<ClientApiOntology.Relationship> clientRelationships = StreamSupport.stream(relationships.spliterator(), false)
                     .map(Relationship::toClientApi)
                     .collect(Collectors.toList());
-            clientApiOntology.addAllRelationships(relationships);
+            clientApiOntology.addAllRelationships(clientRelationships);
         }
 
         if (propertyIds != null) {
-            List<ClientApiOntology.Property> properties = IterableUtils.toList(ontologyRepository.getProperties(Lists.newArrayList(propertyIds), workspaceId))
-                    .stream()
+            Iterable<OntologyProperty> properties = ontologyRepository.getProperties(Lists.newArrayList(propertyIds), workspaceId);
+            List<ClientApiOntology.Property> clientProperties = StreamSupport.stream(properties.spliterator(), false)
                     .map(OntologyProperty::toClientApi)
                     .collect(Collectors.toList());
-            clientApiOntology.addAllProperties(properties);
+            clientApiOntology.addAllProperties(clientProperties);
         }
 
         return clientApiOntology;
