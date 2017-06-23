@@ -26,7 +26,7 @@
     "babel-preset-react": "^6.16.0",
     "bluebird": "^3.5.0",
     "color-js": "1.0.3",
-    "ejs-compiled-loader": "^1.1.0",
+    "ejs-compiled-loader": "^2.2.0",
     "fast-json-patch": "1.0.0",
     "jest": "^18.1.0",
     "react": "15.4.2",
