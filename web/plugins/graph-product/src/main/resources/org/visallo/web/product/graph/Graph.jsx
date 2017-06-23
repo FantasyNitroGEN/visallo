@@ -187,6 +187,21 @@ define([
                 nextProps.relationships !== this.props.relationships) {
                 memoizeClear('vertexToCyNode');
             }
+            const newExtendedData = nextProps.product.extendedData;
+            const oldExtendedData = this.props.product.extendedData;
+            if (newExtendedData) {
+                let shouldClear = false;
+                const ignoredExtendedDataKeys = ['vertices', 'edges', 'unauthorizedEdgeIds'];
+                Object.keys(newExtendedData).forEach(key => {
+                    if (shouldClear || ignoredExtendedDataKeys.includes(key)) return;
+                    if (!oldExtendedData || newExtendedData[key] !== oldExtendedData[key]) {
+                        shouldClear = true;
+                    }
+                })
+                if (shouldClear) {
+                    memoizeClear('vertexToCyNode');
+                }
+            }
             if (nextProps.product.id === this.props.product.id) {
                 this.setState({ viewport: {}, initialProductDisplay: false })
             } else {
@@ -329,8 +344,8 @@ define([
         },
 
         onDecorationEvent(event) {
-            const { cy, cyTarget } = event;
-            const decoration = decorationForId(cyTarget.id());
+            const { cy, target } = event;
+            const decoration = decorationForId(target.id());
             if (decoration) {
                 const handlerName = {
                     /**
@@ -372,30 +387,30 @@ define([
                     }
                 }
                 if (_.isFunction(decoration[handlerName])) {
-                    decoration[handlerName].call(cyTarget, event, {
+                    decoration[handlerName].call(target, event, {
                         cy,
-                        vertex: cyTarget.data('vertex')
+                        vertex: target.data('vertex')
                     });
                 }
             }
         },
 
-        onMouseOver({ cy, cyTarget }) {
+        onMouseOver({ cy, target }) {
             clearTimeout(this.hoverMouseOverTimeout);
 
-            if (cyTarget !== cy && cyTarget.is('node.v')) {
+            if (target !== cy && target.is('node.v')) {
                 this.hoverMouseOverTimeout = _.delay(() => {
-                    if (cyTarget.data('isTruncated')) {
-                        var nId = cyTarget.id();
+                    if (target.data('isTruncated')) {
+                        var nId = target.id();
                         this.setState({ hovering: nId })
                     }
                 }, 500);
             }
         },
 
-        onMouseOut({ cy, cyTarget }) {
+        onMouseOut({ cy, target }) {
             clearTimeout(this.hoverMouseOverTimeout);
-            if (cyTarget !== cy && cyTarget.is('node.v')) {
+            if (target !== cy && target.is('node.v')) {
                 if (this.state.hovering) {
                     this.setState({ hovering: null })
                 }
@@ -536,32 +551,32 @@ define([
             this.setState({ draw: null })
         },
 
-        onTapHold({ cy, cyTarget }) {
-            if (cy !== cyTarget) {
-                this.previewVertex(null, { vertexId: cyTarget.id() })
+        onTapHold({ cy, target }) {
+            if (cy !== target) {
+                this.previewVertex(null, { vertexId: target.id() })
             }
         },
 
         onTapStart(event) {
-            const { cy, cyTarget } = event;
-            if (cy !== cyTarget && event.originalEvent.ctrlKey) {
+            const { cy, target } = event;
+            if (cy !== target && event.originalEvent.ctrlKey) {
                 cy.autoungrabify(true);
                 this.setState({
                     draw: {
-                        vertexId: cyTarget.id()
+                        vertexId: target.id()
                     }
                 });
             }
         },
 
         onTap(event) {
-            const { cy, cyTarget, cyPosition } = event;
-            const { x, y } = cyPosition;
+            const { cy, target, position } = event;
+            const { x, y } = position;
             const { ctrlKey, shiftKey } = event.originalEvent;
             const { draw, paths } = this.state;
 
             if (paths) {
-                if (cy === cyTarget && _.isEmpty(this.props.selection.vertices) && _.isEmpty(this.props.selection.edges)) {
+                if (cy === target && _.isEmpty(this.props.selection.vertices) && _.isEmpty(this.props.selection.edges)) {
                     $(document).trigger('defocusPaths');
                     this.setState({ paths: null })
                 }
@@ -582,7 +597,7 @@ define([
             } else {
                 if (ctrlKey) {
                     this.onContextTap(event);
-                } else if (!shiftKey && cy === cyTarget) {
+                } else if (!shiftKey && cy === target) {
                     this.coalesceSelection('clear');
                     this.props.onClearSelection();
                 }
@@ -590,41 +605,41 @@ define([
         },
 
         onCxtTapEnd(event) {
-            const { cy, cyTarget } = event;
-            if (cy !== cyTarget && event.originalEvent.ctrlKey) {
+            const { cy, target } = event;
+            if (cy !== target && event.originalEvent.ctrlKey) {
                 this.onTap(event);
             }
         },
 
         onContextTap(event) {
-            const { cyTarget, cy, originalEvent } = event;
+            const { target, cy, originalEvent } = event;
             // TODO: show all selected objects if not on item
-            if (cyTarget !== cy) {
+            if (target !== cy) {
                 const { pageX, pageY } = originalEvent;
-                if (cyTarget.isNode()) {
-                    this.props.onVertexMenu(originalEvent.target, cyTarget.id(), { x: pageX, y: pageY });
+                if (target.isNode()) {
+                    this.props.onVertexMenu(originalEvent.target, target.id(), { x: pageX, y: pageY });
                 } else {
-                    const edgeIds = _.pluck(cyTarget.data('edgeInfos'), 'edgeId');
+                    const edgeIds = _.pluck(target.data('edgeInfos'), 'edgeId');
                     this.props.onEdgeMenu(originalEvent.target, edgeIds, { x: pageX, y: pageY });
                 }
             }
         },
 
-        onRemove({ cyTarget }) {
-            if (isValidElement(cyTarget)) {
-                this.coalesceSelection('remove', cyTarget.isNode() ? 'vertices' : 'edges', cyTarget);
+        onRemove({ target }) {
+            if (isValidElement(target)) {
+                this.coalesceSelection('remove', target.isNode() ? 'vertices' : 'edges', target);
             }
         },
 
-        onSelect({ cyTarget }) {
-            if (isValidElement(cyTarget)) {
-                this.coalesceSelection('add', cyTarget.isNode() ? 'vertices' : 'edges', cyTarget);
+        onSelect({ target }) {
+            if (isValidElement(target)) {
+                this.coalesceSelection('add', target.isNode() ? 'vertices' : 'edges', target);
             }
         },
 
-        onUnselect({ cyTarget }) {
-            if (isValidElement(cyTarget)) {
-                this.coalesceSelection('remove', cyTarget.isNode() ? 'vertices' : 'edges', cyTarget);
+        onUnselect({ target }) {
+            if (isValidElement(target)) {
+                this.coalesceSelection('remove', target.isNode() ? 'vertices' : 'edges', target);
             }
         },
 
@@ -646,10 +661,10 @@ define([
             }
         },
 
-        onPosition({ cyTarget }) {
-            if (isValidNode(cyTarget)) {
-                var id = cyTarget.id();
-                this.cyNodeIdsWithPositionChanges[id] = cyTarget;
+        onPosition({ target }) {
+            if (isValidNode(target)) {
+                var id = target.id();
+                this.cyNodeIdsWithPositionChanges[id] = target;
             }
         },
 

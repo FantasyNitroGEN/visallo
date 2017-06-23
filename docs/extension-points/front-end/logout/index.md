@@ -19,4 +19,4 @@ Register the plugin resource in a web plugin.
 
 Register the logout extension that warns the user, prevents the default logout action, and does the logout itself.
 
-{% github_embed "https://github.com/visallo/doc-examples/blob/1155d95c/extension-logout/src/main/resources/org/visallo/examples/logout/plugin.js#L3-L16" %}{% endgithub_embed %}
+{% github_embed "https://github.com/visallo/doc-examples/blob/a9ca39df/extension-logout/src/main/resources/org/visallo/examples/logout/plugin.js#L3-L17" %}{% endgithub_embed %}

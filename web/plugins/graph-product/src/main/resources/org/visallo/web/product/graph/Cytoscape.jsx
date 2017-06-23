@@ -2,23 +2,25 @@ define([
     'react',
     'underscore',
     'cytoscape',
+    'cytoscape-dagre',
+    'dagre',
     'fast-json-patch',
     'components/NavigationControls',
     'colorjs',
     './betterGrid',
     './Menu',
-    './cytoscapeCorsFix',
     'util/formatters'
 ], function(
     React,
     _,
     cytoscape,
+    cytoscapeDagre,
+    dagre,
     jsonpatch,
     NavigationControls,
     colorjs,
     betterGrid,
     Menu,
-    fixCytoscapeCorsHandling,
     F) {
     const { PropTypes } = React;
     const ANIMATION = { duration: 400, easing: 'spring(250, 20)' };
@@ -40,16 +42,8 @@ define([
             },
             edgeElasticity: 10
         },
-        breadthfirst: {
-            roots: function(nodes, options) {
-                if (options && options.onlySelected) {
-                    return [];
-                }
-                return nodes.roots().map(function(n) { return n.id(); })
-            },
-            directed: false,
-            circle: false,
-            maximalAdjustments: 10
+        dagre: {
+
         }
     };
     const PREVIEW_DEBOUNCE_SECONDS = 3;
@@ -127,8 +121,8 @@ define([
             this.previousConfig = this.prepareConfig();
             const cy = cytoscape(this.previousConfig);
             const updateControlDragSelection = (nodeId = null) => this.setState({ controlDragSelection: nodeId });
-            fixCytoscapeCorsHandling(cy);
             cytoscape('layout', 'bettergrid', betterGrid);
+            cytoscapeDagre(cytoscape, dagre);
 
             this.clientRect = this.refs.cytoscape.getBoundingClientRect();
             this.setState({ cy })
@@ -136,21 +130,21 @@ define([
             cy.on('tap mouseover mouseout', 'node.decoration', event => {
                 this.props.onDecorationEvent(event);
             });
-            cy.on('position grab free', 'node.v', ({ cyTarget }) => {
-                if (cyTarget.isChild()) {
-                    this.updateDecorationPositions(cyTarget);
+            cy.on('position grab free', 'node.v', ({ target }) => {
+                if (target.isChild()) {
+                    this.updateDecorationPositions(target);
                 }
             })
             cy.on('mousemove', (event) => {
                 const { controlDragSelection } = this.state;
                 const { drawEdgeToMouseFrom } = this.props;
-                const { cyTarget, cy } = event;
-                const targetIsNode = cyTarget !== cy && cyTarget.is('node.v');
+                const { target, cy } = event;
+                const targetIsNode = target !== cy && target.is('node.v');
 
                 if (drawEdgeToMouseFrom) {
                     if (targetIsNode && !drawEdgeToMouseFrom.toVertexId) {
-                        if (cyTarget.data().id !== controlDragSelection) {
-                            updateControlDragSelection(cyTarget.id());
+                        if (target.data().id !== controlDragSelection) {
+                            updateControlDragSelection(target.id());
                         }
                     } else if (controlDragSelection) {
                         updateControlDragSelection();
@@ -162,7 +156,7 @@ define([
                         const node = cy.getElementById(DrawEdgeNodeId);
 
                         if (targetIsNode) {
-                            node.position(cyTarget.position());
+                            node.position(target.position());
                         } else {
                             node.renderedPosition({ x: pageX - left, y: pageY - top });
                         }
@@ -281,14 +275,14 @@ define([
                         });
                     cy.on(eventMap)
                     cy.on('cxttap', (event) => {
-                        const {cyTarget, cy} = event;
-                        if (cy === cyTarget) {
+                        const {target, cy} = event;
+                        if (cy === target) {
                             this.setState({ showGraphMenu: event })
                         }
                     })
                     cy.on('tap', (event) => {
-                        const {cyTarget, cy} = event;
-                        if (cy === cyTarget && event.originalEvent.ctrlKey) {
+                        const {target, cy} = event;
+                        if (cy === target && event.originalEvent.ctrlKey) {
                             this.setState({ showGraphMenu: event })
                         }
                     })
