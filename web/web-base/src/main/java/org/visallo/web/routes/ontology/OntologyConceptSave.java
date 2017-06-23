@@ -5,6 +5,7 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -37,13 +38,18 @@ public class OntologyConceptSave implements ParameterizedHandler {
     ) throws Exception {
         Concept parent;
         if (parentConcept == null) {
-            parent = ontologyRepository.getConceptByIRI(OntologyRepository.ENTITY_CONCEPT_IRI, workspaceId);
+            parent = ontologyRepository.getEntityConcept(workspaceId);
         } else {
             parent = ontologyRepository.getConceptByIRI(parentConcept, workspaceId);
+            if (parent == null) {
+                throw new VisalloException("Unable to find parent concept with IRI: " + parentConcept);
+            }
         }
+
         if (iri == null) {
             iri = ontologyRepository.generateDynamicIri(Concept.class, displayName, workspaceId);
         }
+
         Concept concept = ontologyRepository.getOrCreateConcept(parent, iri, displayName, glyphIconHref, color, null, user, workspaceId);
 
         ontologyRepository.clearCache(workspaceId);
@@ -51,5 +57,4 @@ public class OntologyConceptSave implements ParameterizedHandler {
 
         return concept.toClientApi();
     }
-
 }

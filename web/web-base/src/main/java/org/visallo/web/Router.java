@@ -93,7 +93,7 @@ public class Router extends HttpServlet {
             app.get("/ontology/segment", authenticator, csrfProtector, ReadPrivilegeFilter.class, OntologyGet.class);
             app.post("/ontology/concept", authenticator, csrfProtector, OntologyAddPrivilegeFilter.class, OntologyConceptSave.class);
             app.post("/ontology/property", authenticator, csrfProtector, OntologyAddPrivilegeFilter.class, OntologyPropertySave.class);
-            app.post("/ontology/relationship", authenticator, csrfProtector, OntologyAddPrivilegeFilter.class, OntologyRealtionshipSave.class);
+            app.post("/ontology/relationship", authenticator, csrfProtector, OntologyAddPrivilegeFilter.class, OntologyRelationshipSave.class);
 
             app.get("/notification/all", authenticator, csrfProtector, ReadPrivilegeFilter.class, Notifications.class);
             app.post("/notification/mark-read", authenticator, csrfProtector, ReadPrivilegeFilter.class, UserNotificationMarkRead.class);
