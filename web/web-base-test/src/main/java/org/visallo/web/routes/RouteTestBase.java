@@ -39,6 +39,7 @@ import java.util.ResourceBundle;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
+import static org.visallo.web.parameterProviders.VisalloBaseParameterProvider.WORKSPACE_ID_ATTRIBUTE_NAME;
 
 public abstract class RouteTestBase {
     public static final String WORKSPACE_ID = "WORKSPACE_12345";
@@ -118,7 +119,7 @@ public abstract class RouteTestBase {
         when(request.getSession()).thenReturn(httpSession);
         when(httpSession.getAttribute(eq(CurrentUser.SESSIONUSER_ATTRIBUTE_NAME))).thenReturn(sessionUser);
 
-        when(request.getAttribute(eq("workspaceId"))).thenReturn(WORKSPACE_ID);
+        when(request.getAttribute(eq(WORKSPACE_ID_ATTRIBUTE_NAME))).thenReturn(WORKSPACE_ID);
 
         when(workspaceRepository.hasReadPermissions(eq(WORKSPACE_ID), eq(user))).thenReturn(true);
 

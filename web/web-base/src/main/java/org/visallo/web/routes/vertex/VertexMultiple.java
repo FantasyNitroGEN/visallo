@@ -1,5 +1,6 @@
 package org.visallo.web.routes.vertex;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
@@ -15,12 +16,9 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.ClientApiVertexMultipleResponse;
-import org.visallo.web.parameterProviders.ActiveWorkspaceId;
-import org.visallo.web.parameterProviders.AuthorizationsParameterProviderFactory;
+import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.HashSet;
 
 public class VertexMultiple implements ParameterizedHandler {
     private final Graph graph;
@@ -46,56 +44,39 @@ public class VertexMultiple implements ParameterizedHandler {
             HttpServletRequest request,
             @Required(name = "vertexIds[]") String[] vertexIdsParam,
             @Optional(name = "fallbackToPublic", defaultValue = "false") boolean fallbackToPublic,
-            @ActiveWorkspaceId(required = false) String workspaceId,
             User user
     ) throws Exception {
-        HashSet<String> vertexStringIds = new HashSet<>(Arrays.asList(vertexIdsParam));
-        GetAuthorizationsResult getAuthorizationsResult = getAuthorizations(request, fallbackToPublic, user);
-
-        Iterable<Vertex> graphVertices = graph.getVertices(
-                vertexStringIds,
-                ClientApiConverter.SEARCH_FETCH_HINTS,
-                getAuthorizationsResult.authorizations
-        );
         ClientApiVertexMultipleResponse result = new ClientApiVertexMultipleResponse();
-        result.setRequiredFallback(getAuthorizationsResult.requiredFallback);
-        for (Vertex v : graphVertices) {
-            result.getVertices().add(ClientApiConverter.toClientApiVertex(
-                    v,
-                    workspaceId,
-                    getAuthorizationsResult.authorizations
-            ));
-        }
-        return result;
-    }
 
-    protected GetAuthorizationsResult getAuthorizations(
-            HttpServletRequest request,
-            boolean fallbackToPublic,
-            User user
-    ) {
-        GetAuthorizationsResult result = new GetAuthorizationsResult();
-        result.requiredFallback = false;
+        String workspaceId = null;
         try {
-            result.authorizations = AuthorizationsParameterProviderFactory.getAuthorizations(
-                    request,
-                    userRepository,
-                    authorizationRepository,
-                    workspaceRepository
-            );
+            workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request, workspaceRepository, userRepository);
+            result.setRequiredFallback(false);
         } catch (VisalloAccessDeniedException ex) {
             if (fallbackToPublic) {
-                result.authorizations = authorizationRepository.getGraphAuthorizations(user);
-                result.requiredFallback = true;
+                result.setRequiredFallback(true);
             } else {
                 throw ex;
             }
         }
-        return result;
-    }
 
-    protected static class GetAuthorizationsResult {
-        public Authorizations authorizations;
-        public boolean requiredFallback;
+        Authorizations authorizations = workspaceId != null ?
+                authorizationRepository.getGraphAuthorizations(user, workspaceId) :
+                authorizationRepository.getGraphAuthorizations(user);
+
+        Iterable<Vertex> graphVertices = graph.getVertices(
+                Sets.newHashSet(vertexIdsParam),
+                ClientApiConverter.SEARCH_FETCH_HINTS,
+                authorizations
+        );
+
+        for (Vertex v : graphVertices) {
+            result.getVertices().add(ClientApiConverter.toClientApiVertex(
+                    v,
+                    workspaceId,
+                    authorizations
+            ));
+        }
+        return result;
     }
 }

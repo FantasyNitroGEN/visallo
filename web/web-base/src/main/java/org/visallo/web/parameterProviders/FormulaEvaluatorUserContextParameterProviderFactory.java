@@ -7,6 +7,7 @@ import com.v5analytics.webster.parameterProviders.ParameterProviderFactory;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.formula.FormulaEvaluator;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workspace.WorkspaceRepository;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,14 +20,18 @@ public class FormulaEvaluatorUserContextParameterProviderFactory extends Paramet
     private final ParameterProvider<FormulaEvaluator.UserContext> parameterProvider;
 
     @Inject
-    public FormulaEvaluatorUserContextParameterProviderFactory(UserRepository userRepository, Configuration configuration) {
+    public FormulaEvaluatorUserContextParameterProviderFactory(
+            UserRepository userRepository,
+            Configuration configuration,
+            WorkspaceRepository workspaceRepository
+    ) {
         parameterProvider = new VisalloBaseParameterProvider<FormulaEvaluator.UserContext>(userRepository, configuration) {
             @Override
             public FormulaEvaluator.UserContext getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
                 Locale locale = getLocale(request);
                 String timeZone = getTimeZone(request);
                 ResourceBundle resourceBundle = getBundle(request);
-                String workspaceId = getActiveWorkspaceIdOrDefault(request);
+                String workspaceId = getActiveWorkspaceIdOrDefault(request, workspaceRepository, userRepository);
                 return new FormulaEvaluator.UserContext(locale, resourceBundle, timeZone, workspaceId);
             }
         };

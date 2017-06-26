@@ -9,11 +9,8 @@ import org.visallo.core.model.user.UserRepository;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.transform.Source;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public class SourceGuidParameterProviderFactory extends ParameterProviderFactory<String> {
     private final ParameterProvider<String> parameterProvider;
