@@ -440,14 +440,9 @@ public abstract class WorkQueueRepository {
     }
 
     private boolean canHandle(Element element, Property property, ElementOrPropertyStatus status) {
-        if (this.graphPropertyRunner == null) {
-            return true;
-        }
-        if (property == null) {
-            return false;
-        }
-
-        return this.graphPropertyRunner.canHandle(element, property, status);
+        String propertyKey = property == null ? null : property.getKey();
+        String propertyName = property == null ? null : property.getName();
+        return canHandle(element, propertyKey, propertyName, status);
     }
 
     private boolean canHandle(Element element, String propertyKey, String propertyName, ElementOrPropertyStatus status) {
