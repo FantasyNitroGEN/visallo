@@ -269,7 +269,6 @@ public abstract class OntologyRepositoryTestBase extends VisalloInMemoryTestBase
         } else {
              testOwl = new File(owlUri);
         }
-        System.out.println(testOwl);
         getOntologyRepository().importFile(testOwl, IRI.create(iri), authorizations);
     }
 
