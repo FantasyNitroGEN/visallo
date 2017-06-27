@@ -11,7 +11,12 @@ import org.visallo.core.util.VisalloInMemoryTestBase;
 import org.visallo.web.clientapi.model.PropertyType;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +30,7 @@ public abstract class OntologyRepositoryTestBase extends VisalloInMemoryTestBase
     private static final String TEST_OWL = "test.owl";
     private static final String TEST_CHANGED_OWL = "test_changed.owl";
     private static final String TEST01_OWL = "test01.owl";
+    private static final String GLYPH_ICON_FILE = "glyphicons_003_user@2x.png";
     private static final String TEST_IRI = "http://visallo.org/test";
 
     private static final String TEST_HIERARCHY_IRI = "http://visallo.org/testhierarchy";
@@ -42,9 +48,8 @@ public abstract class OntologyRepositoryTestBase extends VisalloInMemoryTestBase
     @Test
     public void changingDisplayAnnotationsShouldSucceed() throws Exception {
         loadTestOwlFile();
-        File changedOwl = new File(OntologyRepositoryTestBase.class.getResource(TEST_CHANGED_OWL).toURI());
 
-        getOntologyRepository().importFile(changedOwl, IRI.create(TEST_IRI), authorizations);
+        importTestOntologyFile(TEST_CHANGED_OWL, TEST_IRI);
 
         validateChangedOwlRelationships();
         validateChangedOwlConcepts();
@@ -53,7 +58,7 @@ public abstract class OntologyRepositoryTestBase extends VisalloInMemoryTestBase
 
     @Test
     public void testGettingParentConceptReturnsParentProperties() throws Exception {
-        loadHierarchyOwlFile();
+        importTestOntologyFile(TEST_HIERARCHY_OWL, TEST_HIERARCHY_IRI);
         Concept concept = getOntologyRepository().getConceptByIRI(TEST_HIERARCHY_IRI + "#person");
         Concept parentConcept = getOntologyRepository().getParentConcept(concept);
         assertEquals(1, parentConcept.getProperties().size());
@@ -62,9 +67,8 @@ public abstract class OntologyRepositoryTestBase extends VisalloInMemoryTestBase
     @Test
     public void dependenciesBetweenOntologyFilesShouldNotChangeParentProperties() throws Exception {
         loadTestOwlFile();
-        File changedOwl = new File(OntologyRepositoryTestBase.class.getResource(TEST01_OWL).toURI());
 
-        getOntologyRepository().importFile(changedOwl, IRI.create(TEST01_IRI), authorizations);
+        importTestOntologyFile(TEST01_OWL, TEST01_IRI);
         validateTestOwlRelationship();
         validateTestOwlConcepts(3);
         validateTestOwlProperties();
@@ -242,19 +246,30 @@ public abstract class OntologyRepositoryTestBase extends VisalloInMemoryTestBase
     }
 
     private void loadTestOwlFile() throws Exception {
-        createTestOntologyRepository(TEST_OWL, TEST_IRI);
+        importTestOntologyFile(TEST_OWL, TEST_IRI);
         validateTestOwlRelationship();
         validateTestOwlConcepts(2);
         validateTestOwlProperties();
     }
 
+    private void importTestOntologyFile(String owlFileResourcePath, String iri) throws Exception {
+        URI owlUri = OntologyRepositoryTestBase.class.getResource(owlFileResourcePath).toURI();
+        File testOwl;
+        if ("jar".equals(owlUri.getScheme())) {
+            Path owlDirectoryPath = Files.createTempDirectory(OntologyRepositoryTestBase.class.getSimpleName());
+            Path owlFilePath = owlDirectoryPath.resolve("test.owl");
+            Path glyphIconPath = owlDirectoryPath.resolve(GLYPH_ICON_FILE);
 
-    private void loadHierarchyOwlFile() throws Exception {
-        createTestOntologyRepository(TEST_HIERARCHY_OWL, TEST_HIERARCHY_IRI);
-    }
+            testOwl = owlFilePath.toFile();
+            InputStream owlFileStream = OntologyRepositoryTestBase.class.getResourceAsStream(owlFileResourcePath);
+            IOUtils.copy(owlFileStream, new FileOutputStream(testOwl));
 
-    private void createTestOntologyRepository(String owlFileResourcePath, String iri) throws Exception {
-        File testOwl = new File(OntologyRepositoryTestBase.class.getResource(owlFileResourcePath).toURI());
+            InputStream glyphIconStream = OntologyRepositoryTestBase.class.getResourceAsStream(GLYPH_ICON_FILE);
+            IOUtils.copy(glyphIconStream, new FileOutputStream(glyphIconPath.toFile()));
+        } else {
+             testOwl = new File(owlUri);
+        }
+        System.out.println(testOwl);
         getOntologyRepository().importFile(testOwl, IRI.create(iri), authorizations);
     }
 
