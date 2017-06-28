@@ -6,6 +6,7 @@ import com.v5analytics.webster.parameterProviders.ParameterProvider;
 import com.v5analytics.webster.parameterProviders.ParameterProviderFactory;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workspace.WorkspaceRepository;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,17 +20,20 @@ public class ActiveWorkspaceIdParameterProviderFactory extends ParameterProvider
     private final ParameterProvider<String> notRequiredParameterProvider;
 
     @Inject
-    public ActiveWorkspaceIdParameterProviderFactory(UserRepository userRepository, Configuration configuration) {
+    public ActiveWorkspaceIdParameterProviderFactory(
+            UserRepository userRepository,
+            Configuration configuration,
+            WorkspaceRepository workspaceRepository) {
         requiredParameterProvider = new VisalloBaseParameterProvider<String>(userRepository, configuration) {
             @Override
             public String getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
-                return getActiveWorkspaceId(request);
+                return getActiveWorkspaceId(request, workspaceRepository, userRepository);
             }
         };
         notRequiredParameterProvider = new VisalloBaseParameterProvider<String>(userRepository, configuration) {
             @Override
             public String getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
-                return getActiveWorkspaceIdOrDefault(request);
+                return getActiveWorkspaceIdOrDefault(request, workspaceRepository, userRepository);
             }
         };
     }

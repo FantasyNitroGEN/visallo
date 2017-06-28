@@ -5,9 +5,7 @@ import com.v5analytics.webster.HandlerChain;
 import com.v5analytics.webster.parameterProviders.ParameterProvider;
 import com.v5analytics.webster.parameterProviders.ParameterProviderFactory;
 import org.vertexium.Authorizations;
-import org.vertexium.SecurityVertexiumException;
 import org.visallo.core.config.Configuration;
-import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
@@ -50,24 +48,8 @@ public class AuthorizationsParameterProviderFactory extends ParameterProviderFac
         if (user == null) {
             return null;
         }
-        String workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request);
+        String workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request, workspaceRepository, userRepository);
         if (workspaceId != null) {
-            try {
-                if (!workspaceRepository.hasReadPermissions(workspaceId, user)) {
-                    throw new VisalloAccessDeniedException(
-                            "You do not have access to workspace: " + workspaceId,
-                            user,
-                            workspaceId
-                    );
-                }
-            } catch (SecurityVertexiumException e) {
-                throw new VisalloAccessDeniedException(
-                        "Error getting access to requested workspace: " + workspaceId,
-                        user,
-                        workspaceId
-                );
-            }
-
             return authorizationRepository.getGraphAuthorizations(user, workspaceId);
         }
 

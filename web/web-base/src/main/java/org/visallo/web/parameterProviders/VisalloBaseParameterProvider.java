@@ -6,9 +6,12 @@ import com.google.common.collect.Lists;
 import com.v5analytics.webster.App;
 import com.v5analytics.webster.parameterProviders.ParameterProvider;
 import org.vertexium.FetchHint;
+import org.vertexium.SecurityVertexiumException;
 import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.ProxyUser;
 import org.visallo.core.user.User;
 import org.visallo.web.CurrentUser;
@@ -27,8 +30,8 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
     private static final String VISALLO_TIME_ZONE_HEADER_NAME = "Visallo-TimeZone";
     private static final String TIME_ZONE_ATTRIBUTE_NAME = "timeZone";
     private static final String TIME_ZONE_PARAMETER_NAME = "timeZone";
-    static final String USER_REQUEST_ATTRIBUTE_NAME = "user";
-    static final String WORKSPACE_ID_ATTRIBUTE_NAME = "workspaceId";
+    public static final String USER_REQUEST_ATTRIBUTE_NAME = "user";
+    public static final String WORKSPACE_ID_ATTRIBUTE_NAME = "workspaceId";
     private final UserRepository userRepository;
     private final Configuration configuration;
 
@@ -37,7 +40,11 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
         this.configuration = configuration;
     }
 
-    public static String getActiveWorkspaceIdOrDefault(final HttpServletRequest request) {
+    public static String getActiveWorkspaceIdOrDefault(
+            final HttpServletRequest request,
+            final WorkspaceRepository workspaceRepository,
+            final UserRepository userRepository
+    ) {
         String workspaceId = (String) request.getAttribute(WORKSPACE_ID_ATTRIBUTE_NAME);
         if (workspaceId == null || workspaceId.trim().length() == 0) {
             workspaceId = request.getHeader(VISALLO_WORKSPACE_ID_HEADER_NAME);
@@ -48,11 +55,33 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
                 }
             }
         }
+
+        User user = getUser(request, userRepository);
+        try {
+            if (!workspaceRepository.hasReadPermissions(workspaceId, user)) {
+                throw new VisalloAccessDeniedException(
+                        "You do not have access to workspace: " + workspaceId,
+                        user,
+                        workspaceId
+                );
+            }
+        } catch (SecurityVertexiumException e) {
+            throw new VisalloAccessDeniedException(
+                    "Error getting access to requested workspace: " + workspaceId,
+                    user,
+                    workspaceId
+            );
+        }
+
         return workspaceId;
     }
 
-    protected static String getActiveWorkspaceId(final HttpServletRequest request) {
-        String workspaceId = getActiveWorkspaceIdOrDefault(request);
+    protected static String getActiveWorkspaceId(
+            final HttpServletRequest request,
+            final WorkspaceRepository workspaceRepository,
+            final UserRepository userRepository
+    ) {
+        String workspaceId = getActiveWorkspaceIdOrDefault(request, workspaceRepository, userRepository);
         if (workspaceId == null || workspaceId.trim().length() == 0) {
             throw new VisalloException(VISALLO_WORKSPACE_ID_HEADER_NAME + " is a required header.");
         }
