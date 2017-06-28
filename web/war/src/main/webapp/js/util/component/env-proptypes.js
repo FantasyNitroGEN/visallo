@@ -1,15 +1,9 @@
 /*
- * Replaces prop-types library with no-check shims in production
+ * Replaces prop-types library with no-check shims in production,
+ * Normally webpack would handle this for us, but not using that yet...
  */
-define(visalloEnvironment.prod ? ['react-proptypes-dev'] : [], function(PropTypes) {
-    const shim = function() {};
-    shim.isRequired = shim;
-    const getShim = function() { return shim; }
-    const PropTypeShims = {
-        array: shim, bool: shim, func: shim, number: shim, object: shim, string: shim, symbol: shim,
-        any: shim, arrayOf: getShim, element: shim, instanceOf: getShim, node: shim, objectOf: getShim,
-        oneOf: getShim, oneOfType: getShim, shape: getShim
-    };
+define(visalloEnvironment.dev ? ['react-proptypes-dev'] : [], function(PropTypes) {
+    const PropTypeShims = getPropTypeShims();
 
     if (PropTypes) {
         if (!shimPropTypesSameAsReal(PropTypeShims, PropTypes)) {
@@ -25,5 +19,32 @@ define(visalloEnvironment.prod ? ['react-proptypes-dev'] : [], function(PropType
         const realKeys = Object.keys(real);
         return shimKeys.length === realKeys.length &&
             _.intersection(shimKeys, realKeys).length === shimKeys.length;
+    }
+
+    function getPropTypeShims() {
+        const shim = function() {};
+        shim.isRequired = shim;
+        const getShim = function() { return shim; }
+        const PropTypeShims = {
+            any: shim,
+            array: shim,
+            arrayOf: getShim,
+            bool: shim,
+            checkPropTypes: shim,
+            element: shim,
+            func: shim,
+            instanceOf: getShim,
+            node: shim,
+            number: shim,
+            object: shim,
+            objectOf: getShim,
+            oneOf: getShim,
+            oneOfType: getShim,
+            shape: getShim,
+            string: shim,
+            symbol: shim
+        };
+        PropTypeShims.PropTypes = PropTypeShims;
+        return PropTypeShims;
     }
 })

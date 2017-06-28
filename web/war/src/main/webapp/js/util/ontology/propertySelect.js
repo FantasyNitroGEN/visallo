@@ -42,7 +42,7 @@ define([
                 console.warn('Attribute `properties` no longer used. Use new filter attribute');
             }
             this.on('filterProperties', function() {
-                console.log(event.type, this.attacher);
+                //console.log(event.type, this.attacher);
             });
 
             const {
