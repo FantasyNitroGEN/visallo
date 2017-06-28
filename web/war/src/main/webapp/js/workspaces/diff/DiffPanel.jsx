@@ -1,12 +1,11 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'classnames',
     'util/vertex/formatters',
     'util/privileges'
-], function(React, classNames, F, Privileges) {
+], function(createReactClass, PropTypes, classNames, F, Privileges) {
     'use strict';
-
-    var PropTypes = React.PropTypes;
 
     function formatVisibility(propertyOrProperties) {
         const property = Array.isArray(propertyOrProperties) ? propertyOrProperties[0] : propertyOrProperties;
@@ -20,7 +19,7 @@ define([
         }, name, property.key)
     }
 
-    const DiffPanel = React.createClass({
+    const DiffPanel = createReactClass({
 
         renderHeader: function(diffs) {
             const { publishing, undoing, onApplyPublishClick, onApplyUndoClick } = this.props;
@@ -318,5 +317,5 @@ define([
         }
     });
 
-    return React.createFactory(DiffPanel);
+    return DiffPanel;
 });

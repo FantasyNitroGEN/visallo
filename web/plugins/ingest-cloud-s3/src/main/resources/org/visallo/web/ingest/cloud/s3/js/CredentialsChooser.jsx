@@ -1,9 +1,10 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     './i18n',
     'components/RegistryInjectorHOC',
     'components/Attacher'
-], function(React, i18n, RegistryInjectorHOC, Attacher) {
+], function(createReactClass, PropTypes, i18n, RegistryInjectorHOC, Attacher) {
     'use strict';
 
     const DEFAULT_AUTH_ID = 'basic_auth'
@@ -31,8 +32,7 @@ define([
         providerClass: 'org.visallo.web.ingest.cloud.s3.authentication.SessionAuthProvider'
     });
 
-    const PropTypes = React.PropTypes;
-    const CredentialsChooser = React.createClass({
+    const CredentialsChooser = createReactClass({
 
         propTypes: {
             authenticationId: PropTypes.string,

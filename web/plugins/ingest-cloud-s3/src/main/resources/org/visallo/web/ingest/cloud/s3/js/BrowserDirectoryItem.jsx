@@ -1,7 +1,7 @@
-define(['react', 'util/formatters'], function(React, F) {
+define(['create-react-class', 'util/formatters'], function(createReactClass, F) {
     'use strict';
 
-    const BrowserDirectoryItem = React.createClass({
+    const BrowserDirectoryItem = createReactClass({
 
         render() {
             const { name, type, size, selected } = this.props;

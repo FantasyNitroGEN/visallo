@@ -1,12 +1,13 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'react-virtualized-select'
 ], function(
-    React,
+    createReactClass,
+    PropTypes,
     { default: VirtualizedSelect }) {
 
-    const PropTypes = React.PropTypes;
-    const GlyphSelector = React.createClass({
+    const GlyphSelector = createReactClass({
         propTypes: {
             search: PropTypes.string,
             onSelected: PropTypes.func.isRequired

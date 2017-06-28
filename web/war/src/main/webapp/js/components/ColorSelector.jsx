@@ -1,7 +1,8 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'colorjs'
-], function(React, colorjs) {
+], function(createReactClass, PropTypes, colorjs) {
 
     const BLACK = 'rgb(0,0,0)';
     const saturation = 0.7;
@@ -17,8 +18,7 @@ define([
         { s: 330, v: 'Pink' },
         { s: 361, v: 'Red' }
     ];
-    const PropTypes = React.PropTypes;
-    const ColorSelector = React.createClass({
+    const ColorSelector = createReactClass({
         propTypes: {
             onSelected: PropTypes.func.isRequired,
             value: PropTypes.string

@@ -1,5 +1,6 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     './Cytoscape',
     './popoverHelper',
     './styles',
@@ -10,7 +11,8 @@ define([
     'util/retina',
     'components/RegistryInjectorHOC'
 ], function(
-    React,
+    createReactClass,
+    PropTypes,
     Cytoscape,
     PopoverHelper,
     styles,
@@ -25,7 +27,6 @@ define([
     const MaxPathsToFocus = 100;
     const MaxPreviewPopovers = 5;
 
-    const PropTypes = React.PropTypes;
     const noop = function() {};
     const generateCompoundEdgeId = edge => edge.outVertexId + edge.inVertexId + edge.label;
     const isGhost = cyElement => cyElement && cyElement._private && cyElement._private.data && cyElement._private.data.animateTo;
@@ -69,7 +70,7 @@ define([
         return memoizeForStorage[fullKey].value
     }
 
-    const Graph = React.createClass({
+    const Graph = createReactClass({
 
         propTypes: {
             workspace: PropTypes.shape({

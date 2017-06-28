@@ -47,12 +47,23 @@ define([
          * @deprecated React is now the preferred component model.
          * @example
          * // Creating react component
-         * define(['react'], function(React) {
-         *  return React.createClass({
+         * define(['create-react-class'], function(createReactClass) {
+         *  return createReactClass({
          *      render() {
          *          return <h1>Hello</h1>
          *      }
          *  })
+         * })
+         * @example
+         * // Creating flightjs component
+         * define([], function() {
+         *  return defineComponent(MyFlightComp);
+         *
+         *  function MyFlightComp() {
+         *     this.after('initialize', function() {
+         *         this.$node.html('<h1>Hello</h1>');
+         *     }
+         *  }
          * })
          */
         defineComponent: defineComponent,

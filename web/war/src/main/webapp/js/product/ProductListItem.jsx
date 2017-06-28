@@ -1,13 +1,13 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'components/DroppableHOC',
     'util/dnd'
-], function(React, DroppableHOC, dnd) {
+], function(createReactClass, PropTypes, DroppableHOC, dnd) {
     'use strict';
 
     const MaxTitleLength = 128;
-    const PropTypes = React.PropTypes;
-    const ProductListItem = React.createClass({
+    const ProductListItem = createReactClass({
         propTypes: {
             selected: PropTypes.string,
             editable: PropTypes.bool.isRequired,

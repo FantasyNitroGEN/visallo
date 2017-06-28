@@ -1,11 +1,11 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     './ProductDetailLoading'
-], function(React, ProductDetailEmpty) {
+], function(createReactClass, PropTypes, ProductDetailEmpty) {
     'use strict';
 
-    const PropTypes = React.PropTypes;
-    const ProductDetail = React.createClass({
+    const ProductDetail = createReactClass({
         propTypes: {
             product: PropTypes.shape({
                 id: PropTypes.string.isRequired

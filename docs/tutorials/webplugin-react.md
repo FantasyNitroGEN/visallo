@@ -63,9 +63,9 @@ define(['public/v1/api'], function(api) {
 
 ```js
 // ReactDemo.jsx
-// Visallo registers 'react' in RequireJS. 
-define(['react'], function(React) {
-    const ReactDemo = React.createClass({
+// Visallo registers 'react', 'create-react-class', and 'prop-types' in RequireJS.
+define(['create-react-class'], function(createReactClass) {
+    const ReactDemo = createReactClass({
         render() {
             const { item } = this.props;
             const { configuration } = item;
@@ -83,8 +83,14 @@ define(['react'], function(React) {
 
 ```js
 // ReactDemoConfig.jsx
-define(['react'], function(React) {
-    const ReactDemoConfig = React.createClass({
+define(['create-react-class', 'prop-types'], function(createReactClass, PropTypes) {
+    const ReactDemoConfig = createReactClass({
+        propTypes: {
+            item: PropTypes.shape({
+                configuration: PropTypes.object.isRequired
+            }).isRequired,
+            extension: PropTypes.object.isRequired
+        },
         render() {
             const { item } = this.props;
             const { configuration } = item;

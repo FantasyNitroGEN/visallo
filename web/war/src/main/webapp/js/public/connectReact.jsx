@@ -9,8 +9,8 @@
  * @react Higher-order Component that automatically resolves the `connect`
  * promise from the public API
  * @example
- * define(['react', 'public/v1/api'], function(React, api) {
- *     const MyComponent = React.createClass({
+ * define(['create-react-class', 'prop-types', 'public/v1/api'], function(createReactClass, PropTypes, api) {
+ *     const MyComponent = createReactClass({
  *         render() {
  *             const { formatters, dataRequest, components } = this.props;
  *             // ...
@@ -21,8 +21,8 @@
  * })
  */
 define([
-    'react'
-], function(React) {
+    'create-react-class', 'prop-types'
+], function(createReactClass, PropTypes) {
     'use strict';
 
     const API_VERSIONS = ['v1'];
@@ -44,7 +44,7 @@ define([
         var defaultVersion = API_VERSIONS[0];
         return apiVersions[defaultVersion];
     };
-    const Connect = (mapApi, Component) => React.createClass({
+    const Connect = (mapApi, Component) => createReactClass({
         getInitialState() {
             return {
                 connected: false,

@@ -1,20 +1,21 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'react-redux',
     './BaseSelect',
     'data/web-worker/store/user/selectors',
     'data/web-worker/store/ontology/selectors',
     'data/web-worker/store/ontology/actions'
 ], function(
-    React,
+    createReactClass,
+    PropTypes,
     redux,
     BaseSelect,
     userSelectors,
     ontologySelectors,
     ontologyActions) {
 
-    const PropTypes = React.PropTypes;
-    const ConceptsSelector = React.createClass({
+    const ConceptsSelector = createReactClass({
         propTypes: {
             filter: PropTypes.shape({
                 conceptId: PropTypes.string.isRequired,

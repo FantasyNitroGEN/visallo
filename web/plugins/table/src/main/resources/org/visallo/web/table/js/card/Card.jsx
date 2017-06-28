@@ -1,11 +1,11 @@
 define([
-    'react',
-    'react-dom',
+    'create-react-class',
+    'prop-types',
     './SavedSearchTable',
     '../table/columnConfigPopover'
 ], function(
-    React,
-    ReactDOM,
+    createReactClass,
+    PropTypes,
     SavedSearchTable,
     columnConfigPopover) {
     'use strict';
@@ -26,15 +26,15 @@ define([
 
     const legacyFormattersError = _.once(() => console.error('Legacy property formatters not supported in table'));
 
-    const Card = React.createClass({
+    const Card = createReactClass({
         propTypes: {
-            item: React.PropTypes.object.isRequired,
-            extension: React.PropTypes.object.isRequired,
-            configurationChanged: React.PropTypes.func.isRequired,
-            configureItem: React.PropTypes.func.isRequired,
-            finishedLoading: React.PropTypes.func.isRequired,
-            showError: React.PropTypes.func.isRequired,
-            visalloApi: React.PropTypes.object.isRequired
+            item: PropTypes.object.isRequired,
+            extension: PropTypes.object.isRequired,
+            configurationChanged: PropTypes.func.isRequired,
+            configureItem: PropTypes.func.isRequired,
+            finishedLoading: PropTypes.func.isRequired,
+            showError: PropTypes.func.isRequired,
+            visalloApi: PropTypes.object.isRequired
         },
 
         getInitialState() {

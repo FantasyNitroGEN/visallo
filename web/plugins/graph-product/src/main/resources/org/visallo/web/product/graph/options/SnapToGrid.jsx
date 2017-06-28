@@ -1,11 +1,12 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'react-redux',
     '../worker/actions'
-], function(React, redux, graphActions) {
+], function(createReactClass, PropTypes, redux, graphActions) {
     'use strict';
 
-    const SnapToGrid = React.createClass({
+    const SnapToGrid = createReactClass({
         onChange(event) {
             const checked = event.target.checked;
             this.props.onSnapToGrid(checked);

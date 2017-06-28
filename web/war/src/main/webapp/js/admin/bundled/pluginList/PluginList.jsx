@@ -1,11 +1,10 @@
 define([
-    'react'
-], function(React) {
+    'create-react-class', 'prop-types'
+], function(createReactClass, PropTypes) {
     'use strict';
 
     const DetailKeys = 'fileName className projectVersion builtBy builtOn gitRevision'.split(' ');
     const TypeDateKeys = 'builtOn'.split(' ');
-    const PropTypes = React.PropTypes;
 
     const PluginItem = function({item, api}) {
         var details = DetailKeys.map(function(key) {
@@ -31,7 +30,7 @@ define([
         )
     };
 
-    const PluginSection = React.createClass({
+    const PluginSection = createReactClass({
         getInitialState: function() {
             return { expanded: false }
         },
@@ -73,7 +72,7 @@ define([
         }
     });
 
-    const PluginList = React.createClass({
+    const PluginList = createReactClass({
         getInitialState: function() {
             return {
                 loading: true,

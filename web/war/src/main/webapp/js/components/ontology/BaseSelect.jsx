@@ -1,12 +1,13 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'react-virtualized-select'
 ], function(
-    React,
+    createReactClass,
+    PropTypes,
     { default: VirtualizedSelect }) {
 
     var _counter = 1;
-    const PropTypes = React.PropTypes;
     const keyCounter = () => _counter++;
 
     const createFixedCreatable = Creatable => {
@@ -29,7 +30,7 @@ define([
         return CreatablePutLast;
     };
 
-    const BaseSelect = React.createClass({
+    const BaseSelect = createReactClass({
         propTypes: {
             onSelected: PropTypes.func.isRequired,
             valueKey: PropTypes.string.isRequired,

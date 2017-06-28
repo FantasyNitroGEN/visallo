@@ -1,12 +1,11 @@
 define([
-    'react',
+    'create-react-class',
     './util',
     'util/formatters'
 ], function(React, util, F) {
     'use strict';
 
-    const PropTypes = React.PropTypes;
-    const StructuredIngestTextSection = React.createClass({
+    const StructuredIngestTextSection = createReactClass({
         getInitialState() {
             return { rows: null, total: null, error: false }
         },

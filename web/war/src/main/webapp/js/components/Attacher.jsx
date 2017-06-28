@@ -1,11 +1,11 @@
 define([
     'react',
+    'create-react-class', 'prop-types',
     'util/component/attacher'
-], function(React, attacher) {
+], function(React, createReactClass, PropTypes, attacher) {
     'use strict';
 
-    const PropTypes = React.PropTypes;
-    const Attacher = React.createClass({
+    const Attacher = createReactClass({
 
         propTypes: {
             componentPath: PropTypes.string.isRequired,

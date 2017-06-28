@@ -1,12 +1,14 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'react-redux',
     './BaseSelect',
     'data/web-worker/store/user/selectors',
     'data/web-worker/store/ontology/selectors',
     'data/web-worker/store/ontology/actions'
 ], function(
-    React,
+    createReactClass,
+    PropTypes,
     redux,
     BaseSelect,
     userSelectors,
@@ -36,8 +38,7 @@ define([
         userVisible: true
     };
 
-    const PropTypes = React.PropTypes;
-    const PropertySelector = React.createClass({
+    const PropertySelector = createReactClass({
         propTypes: {
             filter: PropTypes.shape({
                 conceptId: PropTypes.string,

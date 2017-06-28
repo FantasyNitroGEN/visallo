@@ -1,5 +1,6 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'underscore',
     'cytoscape',
     'cytoscape-dagre',
@@ -11,7 +12,8 @@ define([
     './Menu',
     'util/formatters'
 ], function(
-    React,
+    createReactClass,
+    PropTypes,
     _,
     cytoscape,
     cytoscapeDagre,
@@ -22,7 +24,6 @@ define([
     betterGrid,
     Menu,
     F) {
-    const { PropTypes } = React;
     const ANIMATION = { duration: 400, easing: 'spring(250, 20)' };
     const ANIMATION_SLOW = { ...ANIMATION, duration: 800 };
     const PanelPaddingBorder = 35;
@@ -79,7 +80,7 @@ define([
     const isEdge = data => (data.source !== undefined)
     const isNode = _.negate(isEdge)
 
-    const Cytoscape = React.createClass({
+    const Cytoscape = createReactClass({
 
         propTypes: {
             initialProductDisplay: PropTypes.bool,

@@ -1,7 +1,6 @@
 define([
-    'react',
     'components/Attacher'
-], function(React, Attacher) {
+], function(Attacher) {
     'use strict';
 
     const GraphExtensionViews = function(props) {

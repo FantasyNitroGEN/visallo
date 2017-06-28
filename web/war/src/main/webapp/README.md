@@ -35,7 +35,7 @@ React JSX is transpiled using [Babel](https://babeljs.io). The in-browser [Babel
 
 ### React
   1. [Basic Rules](#basic-rules-1)
-  1. [`React.createClass` vs. stateless function](#reactcreateclass-vs-stateless-function)
+  1. [`createReactClass` vs. stateless function](#reactcreateclass-vs-stateless-function)
   1. [Component Design](#component-design)
   1. [Naming](#naming)
   1. [PropTypes](#proptypes)
@@ -127,10 +127,10 @@ React JSX is transpiled using [Babel](https://babeljs.io). The in-browser [Babel
 
   - Prefer including only one React component per file.
 
-### `React.createClass` vs stateless function
+### `createReactClass` vs stateless function
 
-  - If the component maintains internal state, create the React class using `React.createClass`. Avoid `class extends React.Component`. eslint: [`react/prefer-es6-class#never-mode`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/prefer-es6-class.md#never-mode)
-  - If the component does not maintain state, prefer an arrow function assigned to a variable over using `React.createClass`.
+  - If the component maintains internal state, create the React class using `create-react-class` module that provides `createReactClass`. Avoid `class extends React.Component`. eslint: [`react/prefer-es6-class#never-mode`](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/prefer-es6-class.md#never-mode)
+  - If the component does not maintain state, prefer an arrow function assigned to a variable over using `createReactClass`.
 
     ```javascript
     // bad (the transpiled function won't receive a name and the component will show up in dev tools as <StatelessComponent>)

@@ -1,17 +1,20 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'public/v1/api',
     'components/Alert'
-], function (React,
-             visallo,
-             Alert) {
+], function(
+    createReactClass,
+    PropTypes,
+    visallo,
+    Alert) {
 
-    const UserAdminAuthorizationPlugin = React.createClass({
+    const UserAdminAuthorizationPlugin = createReactClass({
         propTypes: {
             // The user for which the authorizations will be edited
-            user: React.PropTypes.shape({
-                userName: React.PropTypes.string.isRequired,
-                authorizations: React.PropTypes.array.isRequired
+            user: PropTypes.shape({
+                userName: PropTypes.string.isRequired,
+                authorizations: PropTypes.array.isRequired
             })
         },
 

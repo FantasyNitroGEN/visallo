@@ -1,9 +1,9 @@
 define([
-    'react'
-], function (React) {
+    'create-react-class'
+], function(createReactClass) {
     'use strict';
 
-    const ReactReattach = React.createClass({
+    const ReactReattach = createReactClass({
         click: function() {
             this.props.changeParam('changed')
         },

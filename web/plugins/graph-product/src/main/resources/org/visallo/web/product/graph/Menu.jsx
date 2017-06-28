@@ -1,18 +1,18 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'util/withContextMenu',
     'util/formatters',
     './node_modules/cytoscape/src/index',
     'components/RegistryInjectorHOC'
-], function(React, withContextMenu, F, cytoscape, RegistryInjectorHOC) {
+], function(createReactClass, PropTypes, withContextMenu, F, cytoscape, RegistryInjectorHOC) {
     'use strict';
 
     const EXTENSION_EXPORT = 'org.visallo.graph.export';
     const EXTENSION_SELECT = 'org.visallo.graph.selection';
     const EXTENSION_LAYOUT = 'org.visallo.graph.layout';
 
-    const PropTypes = React.PropTypes;
-    const Menu = React.createClass({
+    const Menu = createReactClass({
         propTypes: {
             event: PropTypes.shape({
                 originalEvent: PropTypes.shape({

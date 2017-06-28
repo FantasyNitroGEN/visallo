@@ -1,16 +1,18 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     './ScrollButtons'
 ], function(
-    React,
+    createReactClass,
+    PropTypes,
     ScrollButtons) {
     'use strict';
 
-    const Tabs = React.createClass({
+    const Tabs = createReactClass({
         propTypes: {
-            tabs: React.PropTypes.object.isRequired,
-            activeTab: React.PropTypes.string,
-            onTabClick: React.PropTypes.func
+            tabs: PropTypes.object.isRequired,
+            activeTab: PropTypes.string,
+            onTabClick: PropTypes.func
         },
 
         getInitialState() {

@@ -1,9 +1,9 @@
 define([
-    'react'
-], function (React) {
+    'create-react-class'
+], function (createReactClass) {
     'use strict';
 
-    const ReactSimple = React.createClass({
+    const ReactSimple = createReactClass({
         render: function(){
             return (
               <div>ReactSimple</div>

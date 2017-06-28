@@ -1,19 +1,20 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'public/v1/api',
     'components/Alert'
-], function (React, visallo, Alert) {
+], function (createReactClass, PropTypes, visallo, Alert) {
 
-    const WorkspaceList = React.createClass({
+    const WorkspaceList = createReactClass({
         propTypes: {
             // The user for which the workspaces will be edited
-            user: React.PropTypes.shape({
-                userName: React.PropTypes.string.isRequired,
-                workspaces: React.PropTypes.array.isRequired
+            user: PropTypes.shape({
+                userName: PropTypes.string.isRequired,
+                workspaces: PropTypes.array.isRequired
             }),
 
             // Callback when a workspace is shared or deleted
-            onWorkspaceChanged: React.PropTypes.func.isRequired
+            onWorkspaceChanged: PropTypes.func.isRequired
         },
 
         dataRequest: null,

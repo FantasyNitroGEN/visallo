@@ -1,6 +1,6 @@
 define([
-    'react'
-], function(React) {
+    'create-react-class', 'prop-types'
+], function(createReactClass, PropTypes) {
     'use strict';
 
     const ProductDetailLoading = function(props) {

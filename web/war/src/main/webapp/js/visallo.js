@@ -120,10 +120,13 @@ function(jQuery,
                     updateVisalloLoadingProgress('dependencies');
 
                     require([
+                        'react',
                         'util/vertex/urlFormatters',
                         'util/withDataRequest',
-                        'util/handlebars/before_auth_helpers'
-                    ], function(_F, _withDataRequest) {
+                        'util/handlebars/before_auth_helpers',
+                    ], function(React, _F, _withDataRequest) {
+                        // Don't need to require react in jsx even if never used
+                        window.React = React;
                         F = _F;
                         withDataRequest = _withDataRequest;
                         loadApplicationTypeBasedOnUrlHash();

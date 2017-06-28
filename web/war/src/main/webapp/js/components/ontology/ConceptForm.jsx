@@ -1,12 +1,12 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     './ConceptSelector',
     '../GlyphSelector',
     '../ColorSelector'
-], function(React, ConceptsSelector, GlyphSelector, ColorSelector) {
+], function(createReactClass, PropTypes, ConceptsSelector, GlyphSelector, ColorSelector) {
 
-    const PropTypes = React.PropTypes;
-    const ConceptForm = React.createClass({
+    const ConceptForm = createReactClass({
         propTypes: {
         },
         getInitialState() {

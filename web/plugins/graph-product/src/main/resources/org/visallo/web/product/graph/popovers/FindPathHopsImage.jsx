@@ -1,10 +1,10 @@
 define([
-    'react'
-], function(React) {
+    'create-react-class',
+    'prop-types'
+], function(createReactClass, PropTypes) {
     'use strict';
 
-    const PropTypes = React.PropTypes;
-    const FindPathHopsImage = React.createClass({
+    const FindPathHopsImage = createReactClass({
         propTypes: {
             hops: PropTypes.number.isRequired,
             hopsTitle: PropTypes.string.isRequired,

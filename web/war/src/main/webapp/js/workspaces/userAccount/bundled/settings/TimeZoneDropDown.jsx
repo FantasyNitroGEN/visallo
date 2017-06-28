@@ -1,15 +1,16 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'jstz',
     'util/formatters'
-], function (React, jstz, F) {
+], function (createReactClass, PropTypes, jstz, F) {
     'use strict';
 
-    const TimeZoneDropDown = React.createClass({
+    const TimeZoneDropDown = createReactClass({
         propTypes: {
-            value: React.PropTypes.string.isRequired,
-            onChange: React.PropTypes.func.isRequired,
-            disabled: React.PropTypes.bool
+            value: PropTypes.string.isRequired,
+            onChange: PropTypes.func.isRequired,
+            disabled: PropTypes.bool
         },
 
         handleTimeZoneChange(evt) {

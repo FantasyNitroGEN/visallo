@@ -1,9 +1,7 @@
-define(['react', 'util/dnd'], function(React, dnd) {
-    'use strict';
+define(['create-react-class', 'prop-types', 'util/dnd'], function(createReactClass, PropTypes, dnd) {
 
     const Events = 'dragover dragenter dragleave drop'.split(' ');
-    const { PropTypes } = React;
-    const DroppableHOC = (WrappedComponent, cls) => React.createClass({
+    const DroppableHOC = (WrappedComponent, cls) => createReactClass({
         displayName: `DroppableHOC(${WrappedComponent.displayName || 'Component'})`,
         propTypes: {
             mimeTypes: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -84,7 +82,8 @@ define(['react', 'util/dnd'], function(React, dnd) {
                 y: pageY - box.top
             });
 
-            this.props.onDrop(event, position);
+            console.log(position, pageX, pageY, positionTransform, box)
+            //this.props.onDrop(event, position);
         },
         toggleClass(toggle) {
             const cls = toggle ? 'accepts-draggable' : '';

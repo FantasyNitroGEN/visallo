@@ -1,12 +1,12 @@
 define([
-    'react'
-], function(React) {
+    'create-react-class', 'prop-types'
+], function(createReactClass, PropTypes) {
     'use strict';
 
-    const Alert = React.createClass({
+    const Alert = createReactClass({
         propTypes: {
-            error: React.PropTypes.any,
-            onDismiss: React.PropTypes.func
+            error: PropTypes.any,
+            onDismiss: PropTypes.func
         },
 
         componentWillReceiveProps(nextProps) {

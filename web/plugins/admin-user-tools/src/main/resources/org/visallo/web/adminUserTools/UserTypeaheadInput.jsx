@@ -1,19 +1,19 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'public/v1/api'
-], function(React,
-            visallo) {
+], function(createReactClass, PropTypes, visallo) {
 
-    const UserTypeaheadInput = React.createClass({
+    const UserTypeaheadInput = createReactClass({
         propTypes: {
             // callback when the typeahead input is changed
-            onInputChange: React.PropTypes.func.isRequired,
+            onInputChange: PropTypes.func.isRequired,
 
             // callback when a user is selected
-            onUserSelected: React.PropTypes.func.isRequired,
+            onUserSelected: PropTypes.func.isRequired,
 
             // current selected user
-            user: React.PropTypes.object
+            user: PropTypes.object
         },
 
         dataRequest: null,

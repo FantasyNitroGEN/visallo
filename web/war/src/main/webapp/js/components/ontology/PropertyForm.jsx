@@ -1,11 +1,11 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     './ConceptSelector'
-], function(React, ConceptsSelector) {
+], function(createReactClass, PropTypes, ConceptsSelector) {
     'use strict';
 
-    const PropTypes = React.PropTypes;
-    const PropertyForm = React.createClass({
+    const PropertyForm = createReactClass({
         propTypes: {
         },
         getInitialState() {

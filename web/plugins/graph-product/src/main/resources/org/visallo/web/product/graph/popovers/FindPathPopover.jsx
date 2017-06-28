@@ -1,25 +1,26 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'updeep',
     'util/withDataRequest',
     'data/web-worker/store/user/actions',
     './FindPathEdgesConfig',
     './FindPathTopLevelConfig'
-], function(React, u, withDataRequest, userActions, FindPathEdgesConfig, FindPathTopLevelConfig) {
+], function(createReactClass, PropTypes, u, withDataRequest, userActions, FindPathEdgesConfig, FindPathTopLevelConfig) {
     'use strict';
 
     const CONFIG_EXCLUDED_EDGE_PREFIX = 'org.visallo.findPath.excludedEdge';
     const STATE_TOP_LEVEL_CONFIG = 'topLevelConfig';
     const STATE_EDGES_CONFIG = 'edgesConfig';
 
-    const FindPathPopover = React.createClass({
+    const FindPathPopover = createReactClass({
         propTypes: {
-            outVertexId: React.PropTypes.string.isRequired,
-            inVertexId: React.PropTypes.string.isRequired,
-            success: React.PropTypes.func.isRequired,
-            setUserPreferences: React.PropTypes.func.isRequired,
-            userPreferences: React.PropTypes.any.isRequired,
-            configuration: React.PropTypes.any.isRequired
+            outVertexId: PropTypes.string.isRequired,
+            inVertexId: PropTypes.string.isRequired,
+            success: PropTypes.func.isRequired,
+            setUserPreferences: PropTypes.func.isRequired,
+            userPreferences: PropTypes.any.isRequired,
+            configuration: PropTypes.any.isRequired
         },
 
         getInitialState() {

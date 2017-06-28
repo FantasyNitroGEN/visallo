@@ -1,14 +1,15 @@
 define([
-    'react',
+    'create-react-class',
     'public/v1/api',
     './UserTypeaheadInput',
     'components/Alert'
-], function(React,
-            visallo,
-            UserTypeaheadInput,
-            Alert) {
+], function(
+    createReactClass,
+    visallo,
+    UserTypeaheadInput,
+    Alert) {
 
-    const LoadUser = React.createClass({
+    const LoadUser = createReactClass({
         dataRequest: null,
 
         getInitialState() {

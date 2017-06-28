@@ -1,13 +1,14 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'jstz',
     'util/formatters',
     'util/withDataRequest',
     './TimeZoneDropDown'
-], function (React, jstz, F, withDataRequest, TimeZoneDropDown) {
+], function (createReactClass, PropTypes, jstz, F, withDataRequest, TimeZoneDropDown) {
     'use strict';
 
-    const TimeZoneSetting = React.createClass({
+    const TimeZoneSetting = createReactClass({
         getInitialState() {
             const prefs = F.timezone.getPreferences();
             return {

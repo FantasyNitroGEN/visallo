@@ -1,6 +1,5 @@
 define([
-    'react'
-], function(React) {
+], function() {
     'use strict';
 
     const GraphEmpty = function(props) {

@@ -1,11 +1,10 @@
 define([
-    'react',
+    'create-react-class',
     'react-redux',
     './BrowserDirectory'
-], function(React, redux, BrowserDirectory) {
-    'use strict';
+], function(createReactClass, redux, BrowserDirectory) {
 
-    const Browser = React.createClass({
+    const Browser = createReactClass({
         render() {
             const { contentsByDir, cwd, onOpenDirectory, onRefreshDirectories, onSelectItem, selected } = this.props;
             const path = cwd.join('/')

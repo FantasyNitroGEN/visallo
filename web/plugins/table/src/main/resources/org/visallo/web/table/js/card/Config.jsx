@@ -1,14 +1,15 @@
 define([
-    'react'
-], function(React) {
+    'create-react-class',
+    'prop-types'
+], function(createReactClass, PropTypes) {
     'use strict';
 
-    const Config = React.createClass({
+    const Config = createReactClass({
         propTypes: {
-            item: React.PropTypes.object.isRequired,
-            extension: React.PropTypes.object.isRequired,
-            visalloApi: React.PropTypes.object.isRequired,
-            configurationChanged: React.PropTypes.func.isRequired
+            item: PropTypes.object.isRequired,
+            extension: PropTypes.object.isRequired,
+            visalloApi: PropTypes.object.isRequired,
+            configurationChanged: PropTypes.func.isRequired
         },
 
         getInitialState: () => {return { savedSearches: [] }},

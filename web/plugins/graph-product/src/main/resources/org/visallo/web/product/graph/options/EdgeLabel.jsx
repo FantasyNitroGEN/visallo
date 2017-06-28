@@ -1,10 +1,10 @@
 define([
-    'react'
-], function(React) {
+    'create-react-class'
+], function(createReactClass) {
     'use strict';
 
     const preferenceName = 'edgeLabels';
-    const EdgeLabel = React.createClass({
+    const EdgeLabel = createReactClass({
         onChange(event) {
             const checked = event.target.checked;
             visalloData.currentUser.uiPreferences[preferenceName] = '' + checked;

@@ -1,11 +1,12 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     './OpenLayers',
     'components/RegistryInjectorHOC',
     'configuration/plugins/registry',
     'util/vertex/formatters',
     'util/mapConfig'
-], function(React, OpenLayers, RegistryInjectorHOC, registry, F, mapConfig) {
+], function(createReactClass, PropTypes, OpenLayers, RegistryInjectorHOC, registry, F, mapConfig) {
     'use strict';
 
     /**
@@ -28,8 +29,7 @@ define([
         'http://docs.visallo.org/extension-points/front-end/mapOptions'
     );
 
-    const PropTypes = React.PropTypes;
-    const Map = React.createClass({
+    const Map = createReactClass({
 
         propTypes: {
             configProperties: PropTypes.object.isRequired,

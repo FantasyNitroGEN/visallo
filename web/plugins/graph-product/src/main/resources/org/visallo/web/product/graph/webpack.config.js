@@ -40,7 +40,13 @@ var VisalloAmdExternals = [
     'fast-json-patch',
     'updeep',
     'underscore',
-    'colorjs'
+    'colorjs',
+    'react',
+    'create-react-class',
+    'prop-types',
+    'react-dom',
+    'redux',
+    'react-redux'
 ].map(path => ({ [path]: { amd: path }}));
 
 var baseConfig = {
@@ -50,34 +56,7 @@ var baseConfig = {
     library: '[name]',
     libraryTarget: 'umd',
   },
-  externals: VisalloAmdExternals.concat([
-    {
-      react: {
-        root: 'React',
-        commonjs2: 'react',
-        commonjs: 'react',
-        amd: 'react'
-      },
-    },
-    {
-      'react-dom': {
-        root: 'ReactDOM',
-        commonjs2: 'react-dom',
-        commonjs: 'react-dom',
-        amd: 'react-dom'
-      }
-    },
-    {
-      'redux': {
-          amd: 'redux'
-      }
-    },
-    {
-      'react-redux': {
-        amd: 'react-redux'
-      }
-    }
-  ]),
+  externals: VisalloAmdExternals,
   resolve: {
     extensions: ['', '.js', '.jsx', '.hbs', '.ejs']
   },

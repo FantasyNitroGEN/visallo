@@ -1,14 +1,15 @@
 define([
-    'react',
+    'create-react-class',
     'public/v1/api',
     './WorkspaceList',
     './LoadUser'
-], function (React,
-             visallo,
-             WorkspaceList,
-             LoadUser) {
+], function (
+    createReactClass,
+    visallo,
+    WorkspaceList,
+    LoadUser) {
 
-    const UserAdminPlugin = React.createClass({
+    const UserAdminPlugin = createReactClass({
         dataRequest: null,
 
         getInitialState() {

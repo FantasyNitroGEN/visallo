@@ -1,15 +1,15 @@
 define([
-    'react',
+    'create-react-class',
     'react-redux',
     './worker/actions',
     './S3Config'
-], function(React, redux, s3Actions, S3Config) {
+], function(createReactClass, redux, s3Actions, S3Config) {
     'use strict';
 
     const triggerPopoverLayout = _.debounce((el) => {
         $(el).trigger('positionDialog');
     }, 250)
-    const PopoverHelper = React.createClass({
+    const PopoverHelper = createReactClass({
         componentDidUpdate() {
             triggerPopoverLayout(this.refs.div);
         },

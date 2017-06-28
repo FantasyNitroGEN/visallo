@@ -1,5 +1,4 @@
 define([
-    'react',
     'react-redux',
     'react-dom',
     'data/web-worker/store/selection/actions',
@@ -9,7 +8,7 @@ define([
     './worker/actions',
     'components/DroppableHOC',
     './Map'
-], function(React, redux, ReactDom, selectionActions, productActions, productSelectors, dnd, mapActions, DroppableHOC, Map) {
+], function(redux, ReactDom, selectionActions, productActions, productSelectors, dnd, mapActions, DroppableHOC, Map) {
     'use strict';
 
     const mimeTypes = [VISALLO_MIMETYPES.ELEMENTS];

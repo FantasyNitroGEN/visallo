@@ -1,7 +1,8 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     './Attacher'
-], function(React, Attacher) {
+], function(createReactClass, PropTypes, Attacher) {
     'use strict';
 
     const PAN_INACTIVE_AREA = 8;
@@ -14,9 +15,7 @@ define([
     const STATE_END = { state: 'panningEnd' };
     const EMPTY = { x: 0, y: 0 };
 
-    const PropTypes = React.PropTypes;
-
-    const NavigationControls = React.createClass({
+    const NavigationControls = createReactClass({
 
         propTypes: {
             zoom: PropTypes.bool,

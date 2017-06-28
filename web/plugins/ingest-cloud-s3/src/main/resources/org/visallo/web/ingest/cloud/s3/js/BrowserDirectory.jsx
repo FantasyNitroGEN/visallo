@@ -1,11 +1,11 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     './BrowserDirectoryItem'
-], function(React, BrowserDirectoryItem) {
+], function(createReactClass, PropTypes, BrowserDirectoryItem) {
     'use strict';
 
-    const PropTypes = React.PropTypes;
-    const BrowserDirectory = React.createClass({
+    const BrowserDirectory = createReactClass({
         propTypes: {
             contents: PropTypes.array,
             selected: PropTypes.array.isRequired,

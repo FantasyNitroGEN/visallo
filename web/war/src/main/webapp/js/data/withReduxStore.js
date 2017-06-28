@@ -117,55 +117,57 @@ That should not be possible as /user/me ensures a workspace is created in that c
      */
     function applyDiff(state, diff) {
         // Need to copy all changed paths, since jsonpatch mutates
-        var copied = copyChangedPaths(state, diff);
+        // Straight clone is faster for many changes
+        let copy = diff.length > 25 ?
+            jsonpatch.deepClone(state) :
+            copyChangedPaths(state, diff);
 
-        jsonpatch.apply(copied, diff)
+        const newState = jsonpatch.applyPatch(copy, diff).newDocument;
 
-        return copied;
+        return newState;
+    }
 
-        function copyChangedPaths(tree, patches) {
-            var alreadyCopiedObjs = [];
+    function copyChangedPaths(tree, patches) {
+        var alreadyCopiedObjs = [];
 
-            if (patches.length) {
-                tree = copyIfNeeded(tree);
-            }
-            patches.forEach(function(patch) {
-                var obj = tree,
-                    keys = (patch.path || '').split('/');
-                for (var i = 1; i < keys.length; i++) {
-                    var key = keys[i]
-                        .replace(/~1/g, '/')
-                        .replace(/~0/g, '~')
-                    if (key in obj) {
-                        obj[key] = copyIfNeeded(obj[key]);
-                        obj = obj[key]
-                    }
+        if (patches.length) {
+            tree = copyIfNeeded(alreadyCopiedObjs, tree);
+        }
+        patches.forEach(function(patch) {
+            var obj = tree,
+                keys = (patch.path || '').split('/');
+            for (var i = 1; i < keys.length; i++) {
+                var key = keys[i]
+                    .replace(/~1/g, '/')
+                    .replace(/~0/g, '~')
+                if (key in obj) {
+                    obj[key] = copyIfNeeded(alreadyCopiedObjs, obj[key]);
+                    obj = obj[key]
                 }
-            });
-
-            return tree;
-
-            function copyIfNeeded(obj) {
-                var cloned = obj;
-                if (_.isArray(obj)) {
-                    if (!alreadyCopied(obj)) {
-                        cloned = obj.concat([]);
-                        alreadyCopiedObjs.push(cloned);
-                    }
-                } else if (_.isObject(obj)) {
-                    if (!alreadyCopied(obj)) {
-                        cloned = Object.assign({}, obj);
-                        alreadyCopiedObjs.push(cloned);
-                    }
-                }
-                return cloned;
             }
+        });
 
-            function alreadyCopied(obj) {
-                return _.contains(alreadyCopiedObjs, obj);
+        return tree;
+    }
+
+    function copyIfNeeded(alreadyCopiedObjs, obj) {
+        var cloned = obj;
+        if (_.isArray(obj)) {
+            if (!alreadyCopied(alreadyCopiedObjs, obj)) {
+                cloned = obj.concat([]);
+                alreadyCopiedObjs.push(cloned);
+            }
+        } else if (_.isObject(obj)) {
+            if (!alreadyCopied(alreadyCopiedObjs, obj)) {
+                cloned = Object.assign({}, obj);
+                alreadyCopiedObjs.push(cloned);
             }
         }
+        return cloned;
+    }
 
+    function alreadyCopied(alreadyCopiedObjs, obj) {
+        return _.contains(alreadyCopiedObjs, obj);
     }
 });
 

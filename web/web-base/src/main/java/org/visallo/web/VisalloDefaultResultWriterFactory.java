@@ -11,13 +11,13 @@ import org.json.JSONObject;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.ACLProvider;
 import org.visallo.core.trace.Trace;
 import org.visallo.core.trace.TraceSpan;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
-import org.visallo.web.parameterProviders.ActiveWorkspaceIdParameterProviderFactory;
 import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,15 +31,18 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
     public static final String WEB_RESPONSE_HEADER_X_FRAME_OPTIONS_DEFAULT = "DENY";
     private final String responseHeaderXFrameOptions;
     private ACLProvider aclProvider;
+    private WorkspaceRepository workspaceRepository;
     private UserRepository userRepository;
 
     @Inject
     public VisalloDefaultResultWriterFactory(
             ACLProvider aclProvider,
+            WorkspaceRepository workspaceRepository,
             UserRepository userRepository,
             Configuration configuration
     ) {
         this.aclProvider = aclProvider;
+        this.workspaceRepository = workspaceRepository;
         this.userRepository = userRepository;
         this.responseHeaderXFrameOptions = configuration.get(WEB_RESPONSE_HEADER_X_FRAME_OPTIONS, WEB_RESPONSE_HEADER_X_FRAME_OPTIONS_DEFAULT);
     }
@@ -86,7 +89,7 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
                         User user = VisalloBaseParameterProvider.getUser(request, userRepository);
                         String workspaceId = user == null ? null : user.getCurrentWorkspaceId();
                         if (StringUtils.isEmpty(workspaceId)) {
-                            workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request);
+                            workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request, workspaceRepository, userRepository);
                         }
                         try (TraceSpan ignored = Trace.start("aclProvider.appendACL")) {
                             clientApiObject = aclProvider.appendACL(clientApiObject, user, workspaceId);

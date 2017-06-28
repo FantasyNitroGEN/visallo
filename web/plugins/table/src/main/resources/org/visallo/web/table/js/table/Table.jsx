@@ -1,9 +1,12 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'react-virtualized',
     'react-resizable',
     './SelectableRowRenderer'
 ], function(
+    createReactClass,
+    PropTypes,
     React,
     ReactVirtualized,
     ReactResizable,
@@ -21,18 +24,18 @@ define([
         HEADER_COLUMN_BORDER = 1,
         SCROLLBAR_WIDTH = 8;
 
-    const Table = React.createClass({
+    const Table = createReactClass({
         propTypes: {
-            data: React.PropTypes.array.isRequired,
-            columns: React.PropTypes.array.isRequired,
-            selected: React.PropTypes.array,
-            sort: React.PropTypes.object,
-            showRowNumbers: React.PropTypes.bool,
-            loadMoreRows: React.PropTypes.func,
-            onHeaderClick: React.PropTypes.func,
-            onRowClick: React.PropTypes.func,
-            onColumnResize: React.PropTypes.func,
-            onConfigureClick: React.PropTypes.func
+            data: PropTypes.array.isRequired,
+            columns: PropTypes.array.isRequired,
+            selected: PropTypes.array,
+            sort: PropTypes.object,
+            showRowNumbers: PropTypes.bool,
+            loadMoreRows: PropTypes.func,
+            onHeaderClick: PropTypes.func,
+            onRowClick: PropTypes.func,
+            onColumnResize: PropTypes.func,
+            onConfigureClick: PropTypes.func
         },
 
         componentWillUpdate(nextProps) {

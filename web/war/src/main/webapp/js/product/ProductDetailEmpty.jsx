@@ -1,10 +1,10 @@
 define([
-    'react'
-], function(React) {
+    'create-react-class',
+    'prop-types'
+], function(createReactClass, PropTypes) {
     'use strict';
 
-    const PropTypes = React.PropTypes;
-    const ProductDetailEmpty = React.createClass({
+    const ProductDetailEmpty = createReactClass({
         propTypes: {
             editable: PropTypes.bool.isRequired,
             extensions: PropTypes.array.isRequired,

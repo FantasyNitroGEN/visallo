@@ -1,10 +1,10 @@
 define([
-    'react',
+   'create-react-class',
+   'prop-types',
     '../i18n'
-], function(React, i18n) {
+], function(createReactClass, PropTypes, i18n) {
 
-    const { PropTypes } = React;
-    const SessionAuth = React.createClass({
+    const SessionAuth = createReactClass({
         propTypes: {
             errorMessage: PropTypes.string,
             onConnect: PropTypes.func.isRequired

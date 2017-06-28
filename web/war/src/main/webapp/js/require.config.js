@@ -22,7 +22,8 @@
                 'jquery-ui/widget': 'jquery-ui-bundle',
                 'jquery-ui/mouse': 'jquery-ui-bundle',
                 'jquery-ui/resizable': 'jquery-ui-bundle',
-                'jquery-ui/draggable': 'jquery-ui-bundle'
+                'jquery-ui/draggable': 'jquery-ui-bundle',
+                'prop-types': 'util/component/env-proptypes'
             }
         },
         paths: {
@@ -44,7 +45,7 @@
             'duration-js': '../libs/duration-js/duration',
             'easing': '../libs/jquery.easing/jquery.easing.1.3',
             'ejs': '../libs/ejs/ejs',
-            'fast-json-patch': '../libs/fast-json-patch/dist/json-patch-duplex.min',
+            'fast-json-patch': '../libs/fast-json-patch/dist/fast-json-patch.min',
             'flight': '../libs/flightjs/build/flight',
             'flight/lib': 'util/flight/compat',
             'goog': '../libs/requirejs-plugins/src/goog',
@@ -70,8 +71,12 @@
             'rangy-highlighter': '../libs/rangy/lib/rangy-highlighter',
             'rangy-cssclassapplier': '../libs/rangy/lib/rangy-classapplier',
             'rangy-serializer': '../libs/rangy/lib/rangy-serializer',
-            'react': '../libs/react/dist/react-with-addons.min',
+
+            'react': '../libs/react/dist/react.min',
+            'create-react-class': '../libs/create-react-class/create-react-class.min',
+            'react-proptypes-dev': '../libs/prop-types/prop-types.min',
             'react-dom': '../libs/react-dom/dist/react-dom.min',
+
             'react-redux': '../libs/react-redux/dist/react-redux.min',
             'react-virtualized-select': '../libs/react-virtualized-select/dist/umd/react-virtualized-select',
             'Reselect': '../libs/reselect/dist/reselect',
@@ -104,7 +109,8 @@
             'rangy-highlighter': { deps: ['rangy-core', 'rangy-cssclassapplier', 'rangy-serializer']},
             'rangy-cssclassapplier': { deps: ['rangy-core'] },
             'rangy-serializer': { deps: ['rangy-core'] },
-            'react': { exports: 'React' },
+            'create-react-class': { deps: ['react'] },
+            'prop-types': { deps: ['react'] },
             'jquery-scrollstop': { exports: 'jQuery', deps: ['jquery'] },
             'underscore': { exports: '_' },
             'videojs': { exports: 'videojs' }

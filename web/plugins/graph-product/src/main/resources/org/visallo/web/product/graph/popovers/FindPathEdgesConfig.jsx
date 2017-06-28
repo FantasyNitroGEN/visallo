@@ -1,15 +1,15 @@
 define([
-    'react'
-], function(React) {
-    'use strict';
+    'create-react-class',
+    'prop-types'
+], function(createReactClass, PropTypes) {
 
-    const FindPathEdgesConfig = React.createClass({
+    const FindPathEdgesConfig = createReactClass({
         propTypes: {
-            availableEdges: React.PropTypes.arrayOf(React.PropTypes.any).isRequired,
-            selectedEdgeIris: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
-            defaultSelectedEdgeIris: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
-            onCancel: React.PropTypes.func.isRequired,
-            onLimit: React.PropTypes.func.isRequired
+            availableEdges: PropTypes.arrayOf(PropTypes.any).isRequired,
+            selectedEdgeIris: PropTypes.arrayOf(PropTypes.string).isRequired,
+            defaultSelectedEdgeIris: PropTypes.arrayOf(PropTypes.string).isRequired,
+            onCancel: PropTypes.func.isRequired,
+            onLimit: PropTypes.func.isRequired
         },
 
         getInitialState() {

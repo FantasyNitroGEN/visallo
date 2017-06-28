@@ -1,14 +1,13 @@
 define([
-    'react',
+    'create-react-class',
     'configuration/plugins/registry'
-], function(React, registry) {
+], function(createReactClass, registry) {
     'use strict';
 
-    const { PropTypes } = React;
     const RegistryInjectorHOC = (WrappedComponent, identifiers) => {
         if (!_.isArray(identifiers)) throw new Error('identifiers must be an array');
 
-        const WithRegistry = React.createClass({
+        const WithRegistry = createReactClass({
             displayName: `RegistryInjectorHOC(${WrappedComponent.displayName || 'Component'})`,
             componentDidMount() {
                 if (identifiers.length === 0) {

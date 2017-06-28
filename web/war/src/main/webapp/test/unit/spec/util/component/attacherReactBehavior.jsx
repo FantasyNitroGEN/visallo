@@ -1,10 +1,10 @@
 define([
-    'react'
-], function (React) {
+    'create-react-class',
+    'prop-types'
+], function(createReactClass, PropTypes) {
     'use strict';
 
-    const PropTypes = React.PropTypes;
-    const ReactParams = React.createClass({
+    const ReactParams = createReactClass({
         handleClick: function() {
             this.props.customBehavior('param1')
         },

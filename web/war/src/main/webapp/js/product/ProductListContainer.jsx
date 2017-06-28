@@ -1,11 +1,12 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'react-redux',
     './ProductList',
     'data/web-worker/store/product/actions',
     'data/web-worker/store/product/selectors',
     'configuration/plugins/registry'
-], function(React, redux, ProductList, productActions, productSelectors, registry) {
+], function(createReactClass, PropTypes, redux, ProductList, productActions, productSelectors, registry) {
     'use strict';
 
     registry.markUndocumentedExtensionPoint('org.visallo.workproduct')

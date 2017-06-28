@@ -1,11 +1,12 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     './ProductListItem',
     'components/RegistryInjectorHOC'
-], function(React, ProductListItem, RegistryInjectorHOC) {
+], function(createReactClass, PropTypes, ProductListItem, RegistryInjectorHOC) {
     'use strict';
 
-    const ProductList = React.createClass({
+    const ProductList = createReactClass({
         render() {
             const { products, status, onCreate, types, registry, workspace, user, ...rest } = this.props;
             const { loading, loaded } = status;

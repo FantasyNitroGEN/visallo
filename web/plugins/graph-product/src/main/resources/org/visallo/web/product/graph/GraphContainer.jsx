@@ -1,5 +1,4 @@
 define([
-    'react',
     'react-redux',
     'react-dom',
     'data/web-worker/store/selection/actions',
@@ -13,7 +12,6 @@ define([
     './worker/actions',
     './Graph'
 ], function(
-    React,
     redux,
     ReactDom,
     selectionActions,

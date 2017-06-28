@@ -1,11 +1,13 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'openlayers',
     'fast-json-patch',
     './multiPointCluster',
     'components/NavigationControls'
 ], function(
-    React,
+    createReactClass,
+    PropTypes,
     ol,
     jsonpatch,
     MultiPointCluster,
@@ -22,9 +24,7 @@ define([
         PREVIEW_HEIGHT = 300,
         PREVIEW_DEBOUNCE_SECONDS = 2;
 
-    const { PropTypes } = React;
-
-    const OpenLayers = React.createClass({
+    const OpenLayers = createReactClass({
         propTypes: {
             source: PropTypes.string.isRequired,
             sourceOptions: PropTypes.object,

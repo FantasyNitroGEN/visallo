@@ -1,61 +1,62 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'configuration/plugins/registry',
     'util/vertex/formatters',
     'util/withDataRequest'
-], function(React, registry, F, withDataRequest) {
+], function(createReactClass, PropTypes, registry, F, withDataRequest) {
     'use strict';
 
     const DIVIDER = 'DIVIDER';
 
-    const MENU_ITEM_SHAPE = React.PropTypes.shape({
+    const MENU_ITEM_SHAPE = PropTypes.shape({
         // function(currentSelection, vertexId, DOMElement, vertex): return true if this item should be disabled
-        shouldDisable: React.PropTypes.func,
+        shouldDisable: PropTypes.func,
 
         // function(currentSelection, vertex): return true if this item can handle the given vertex
-        canHandle: React.PropTypes.func,
+        canHandle: PropTypes.func,
 
         // The primary label to display
-        label: React.PropTypes.string.isRequired,
+        label: PropTypes.string.isRequired,
 
         // optional sub-menu
-        submenu: React.PropTypes.arrayOf(React.PropTypes.any),
+        submenu: PropTypes.arrayOf(PropTypes.any),
 
         // CSS class to apply
-        cls: React.PropTypes.string,
+        cls: PropTypes.string,
 
         // Keyboard shortcut
-        shortcut: React.PropTypes.string,
+        shortcut: PropTypes.string,
 
         // subtitle to display under the primary label
-        subtitle: React.PropTypes.string,
+        subtitle: PropTypes.string,
 
-        options: React.PropTypes.shape({
-            insertIntoMenuItems: React.PropTypes.func
+        options: PropTypes.shape({
+            insertIntoMenuItems: PropTypes.func
         })
     });
 
-    const ElementContextMenuList = React.createClass({
+    const ElementContextMenuList = createReactClass({
         propTypes: {
             // the element that was clicked on
-            element: React.PropTypes.any,
+            element: PropTypes.any,
 
             // the vertex or edge title
-            elementTitle: React.PropTypes.string.isRequired,
+            elementTitle: PropTypes.string.isRequired,
 
             // the menu items to render
-            items: React.PropTypes.arrayOf(
-                React.PropTypes.oneOfType([
+            items: PropTypes.arrayOf(
+                PropTypes.oneOfType([
                     MENU_ITEM_SHAPE,
-                    React.PropTypes.string
+                    PropTypes.string
                 ])
             ).isRequired,
 
             // the DOM element that originated the menu
-            domElement: React.PropTypes.any.isRequired,
+            domElement: PropTypes.any.isRequired,
 
             // callback when a menu item is clicked
-            onMenuItemClick: React.PropTypes.func.isRequired
+            onMenuItemClick: PropTypes.func.isRequired
         },
 
         handleMenuItemClick(item) {
@@ -83,25 +84,25 @@ define([
         }
     });
 
-    const ElementContextMenuItem = React.createClass({
+    const ElementContextMenuItem = createReactClass({
         propTypes: {
             // the element that was clicked on
-            element: React.PropTypes.any,
+            element: PropTypes.any,
 
             // the vertex or edge title
-            elementTitle: React.PropTypes.string.isRequired,
+            elementTitle: PropTypes.string.isRequired,
 
             // the menu item to render
             item: MENU_ITEM_SHAPE,
 
             // the DOM element that originated the menu
-            domElement: React.PropTypes.any.isRequired,
+            domElement: PropTypes.any.isRequired,
 
             // callback to call when this item is clicked
-            onClick: React.PropTypes.func.isRequired,
+            onClick: PropTypes.func.isRequired,
 
             // callback when a menu item is clicked (needed to pass to submenus)
-            onMenuItemClick: React.PropTypes.func.isRequired
+            onMenuItemClick: PropTypes.func.isRequired
         },
 
         getInitialState() {
@@ -189,20 +190,20 @@ define([
         }
     });
 
-    const ElementContextMenu = React.createClass({
+    const ElementContextMenu = createReactClass({
         propTypes: {
             // can be a vertexId or edgeIds
-            vertexId: React.PropTypes.string,
-            edgeIds: React.PropTypes.arrayOf(React.PropTypes.string),
+            vertexId: PropTypes.string,
+            edgeIds: PropTypes.arrayOf(PropTypes.string),
 
             // the position to display the menu
-            position: React.PropTypes.shape({
-                x: React.PropTypes.number,
-                y: React.PropTypes.number
+            position: PropTypes.shape({
+                x: PropTypes.number,
+                y: PropTypes.number
             }).isRequired,
 
             // the DOM element that originated the menu
-            domElement: React.PropTypes.any.isRequired
+            domElement: PropTypes.any.isRequired
         },
 
         getInitialState() {

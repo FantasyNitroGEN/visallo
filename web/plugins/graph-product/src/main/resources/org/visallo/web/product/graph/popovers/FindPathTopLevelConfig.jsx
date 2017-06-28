@@ -1,19 +1,20 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     './FindPathHopsImage'
-], function (React, FindPathHopsImage) {
+], function (createReactClass, PropTypes, FindPathHopsImage) {
     'use strict';
 
-    const FindPathTopLevelConfig = React.createClass({
+    const FindPathTopLevelConfig = createReactClass({
         propTypes: {
-            availableEdges: React.PropTypes.arrayOf(React.PropTypes.any).isRequired,
-            selectedEdgeIris: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
-            defaultSelectedEdgeIris: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
-            maximumHops: React.PropTypes.number.isRequired,
-            executing: React.PropTypes.bool,
-            onMaximumHopsChange: React.PropTypes.func.isRequired,
-            onExecute: React.PropTypes.func.isRequired,
-            onEdgesValueConfigure: React.PropTypes.func.isRequired
+            availableEdges: PropTypes.arrayOf(PropTypes.any).isRequired,
+            selectedEdgeIris: PropTypes.arrayOf(PropTypes.string).isRequired,
+            defaultSelectedEdgeIris: PropTypes.arrayOf(PropTypes.string).isRequired,
+            maximumHops: PropTypes.number.isRequired,
+            executing: PropTypes.bool,
+            onMaximumHopsChange: PropTypes.func.isRequired,
+            onExecute: PropTypes.func.isRequired,
+            onEdgesValueConfigure: PropTypes.func.isRequired
         },
 
         handleMaximumHopsChange(event) {

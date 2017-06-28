@@ -1,10 +1,10 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     './ConceptSelector'
-], function(React, ConceptsSelector) {
+], function(createReactClass, PropTypes, ConceptsSelector) {
 
-    const PropTypes = React.PropTypes;
-    const RelationshipForm = React.createClass({
+    const RelationshipForm = createReactClass({
         propTypes: {
         },
         getInitialState() {

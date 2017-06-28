@@ -31,6 +31,9 @@
 
       require.urlArgs = window.visalloCacheBreaker = "vslo_v=" + versionParameter;
       window.visalloEnvironment = { dev: {{devMode}}, prod: !{{devMode}} };
+      if (visalloEnvironment.dev) {
+        removeMinificationForDev('react', 'react-dom', 'create-react-class', 'react-proptypes-dev');
+      }
       window.visalloPluginResources = {
         beforeAuth: [
         {{#each pluginJsResourcesBeforeAuth}}  '{{contextPath}}{{.}}'{{#unless @last}},{{/unless}}
@@ -57,6 +60,14 @@
         raf(function() { window.setTimeout(loadDeferredStyles, 0); });
       } else {
         window.addEventListener('load', loadDeferredStyles);
+      }
+      function removeMinificationForDev() {
+        for (var i = 0; i < arguments.length; i++) {
+          var name = arguments[i];
+          if (name in require.paths) {
+            require.paths[name] = require.paths[name].replace(/\.min$/, '');
+          } else console.warn('No path found: ', name)
+        }
       }
     })();
   </script>

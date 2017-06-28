@@ -1,8 +1,9 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'configuration/plugins/registry',
     './BooleanSetting'
-], function(React, registry, BooleanSetting) {
+], function(createReactClass, PropTypes, registry, BooleanSetting) {
     'use strict';
 
     /**
@@ -45,7 +46,7 @@ define([
         componentPath: 'workspaces/userAccount/bundled/settings/TimeZoneSetting'
     };
 
-    const SettingsSetting = React.createClass({
+    const SettingsSetting = createReactClass({
         getInitialState() {
             return {
                 component: null
@@ -96,7 +97,7 @@ define([
         }
     });
 
-    const SettingsGroup = React.createClass({
+    const SettingsGroup = createReactClass({
         render() {
             const settings = _.sortBy(this.props.settings, s => i18n(s.displayName));
 
@@ -111,7 +112,7 @@ define([
         }
     });
 
-    const Settings = React.createClass({
+    const Settings = createReactClass({
         getSettingsExtensions() {
             const settings = registry.extensionsForPoint('org.visallo.user.account.page.setting');
 

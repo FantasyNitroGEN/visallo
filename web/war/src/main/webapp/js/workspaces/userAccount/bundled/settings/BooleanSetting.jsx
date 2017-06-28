@@ -1,12 +1,13 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'configuration/plugins/registry',
     'util/withDataRequest',
     'util/parsers'
-], function (React, registry, withDataRequest, P) {
+], function (createReactClass, PropTypes, registry, withDataRequest, P) {
     'use strict';
 
-    const BooleanSetting = React.createClass({
+    const BooleanSetting = createReactClass({
         getInitialState() {
             return {
                 disabled: true,

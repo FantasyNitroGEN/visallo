@@ -1,5 +1,5 @@
 define([
-    'react',
+    'create-react-class',
     'react-redux',
     'configuration/plugins/registry',
     './ProductDetail',
@@ -8,7 +8,7 @@ define([
     'data/web-worker/store/product/actions',
     'data/web-worker/store/product/selectors'
 ], function(
-    React,
+    createReactClass,
     redux,
     registry,
     ProductDetail,
@@ -18,7 +18,7 @@ define([
     productSelectors) {
     'use strict';
 
-    const ProductDetailContainer = React.createClass({
+    const ProductDetailContainer = createReactClass({
         render() {
             const props = this.props;
             var { product, products, extensions } = props;
