@@ -105,7 +105,8 @@ define([
             return {
                 type: type,
                 query: '',
-                filters: []
+                filters: [],
+                status: {}
             }
         }), 'type');
 
@@ -172,19 +173,27 @@ define([
          * @event org.visallo.search.advanced#savedQuerySelected
          * @property {object} data
          * @property {object} data.query
-         * @property {object} data.query.url The search endpoint
-         * @property {object} data.query.parameters The search endpoint
-         * parameters
+         * @property {string} data.query.url The search endpoint
+         * @property {object} data.query.parameters The search endpoint parameters
          */
         this.onSavedQuerySelected = function(event, data) {
             if ($(event.target).is(this.currentSearchNode)) return;
-            this.trigger(
-                'searchByParameters',
-                {
-                    ...data.query,
-                    submit: true
-                }
-            );
+
+            if (this.advancedActive) {
+                const params = this.advancedSearchExtension.params();
+                this.advancedSearchExtension.params({
+                    ...params,
+                    initialParameters: data.query.parameters
+                }).attach();
+            } else {
+                this.trigger(
+                    'searchByParameters',
+                    {
+                        ...data.query,
+                        submit: true
+                    }
+                );
+            }
         };
 
         this.onSearchByParameters = function(event, data) {
@@ -226,10 +235,10 @@ define([
          * @property {object} data
          * @property {string} data.url The endpoint url (should match extension
          * point savedSearchUrl)
-         * @property {object} data.parameters The paramters to send to endpoint
+         * @property {object} data.parameters The parameters to send to endpoint
          */
         this.onSetCurrentSearchForSaving = function(event, data) {
-            if ($(event.target).is(this.attr.savedSearchSelector)) return;
+            if (event.target && $(event.target).is(this.attr.savedSearchSelector)) return;
 
             if (data && data.url) {
                 var visalloFilter = /^\/(?:vertex|element|edge)\/search$/;
@@ -242,7 +251,7 @@ define([
                 this.currentSearchByUrl = {};
                 this.currentSearch = null;
             }
-            this.select('savedSearchSelector').trigger(event.type, this.currentSearchByUrl[this.currentSearchUrl]);
+            this.select('savedSearchSelector').trigger('setCurrentSearchForSaving', this.currentSearchByUrl[this.currentSearchUrl]);
             this.updateQueryToolbarExtensions();
         };
 
@@ -434,28 +443,37 @@ define([
 
         this.onSearchResultsCompleted = function(event, data) {
             this.select('queryContainerSelector').removeClass('loading');
-            this.updateQueryError(data);
+            this.updateQueryStatus(data);
         };
 
-        this.updateQueryError = function(data) {
-            var $error = this.select('queryValidationSelector'),
-                $hits = this.select('hitsSelector');
+        /**
+         * Display the status of a submitted query. If no argument is given it will clear the current status.
+         *
+         * @callback org.visallo.search.advanced~updateQueryStatus
+         * @param {object} [status]
+         * @param {boolean} [status.success]
+         * @param {string} [status.error] Custom error message to display
+         * @param {string} [status.message] Message to display on success (e.g. number of hits)
+         */
+        this.updateQueryStatus = function(status) {
+            const searchType = this.getSearchTypeOrId();
+            const $error = this.select('queryValidationSelector');
+            const $hits = this.select('hitsSelector');
 
-            this.$node.toggleClass('hasError', !!(data && !data.success));
-
-            if (!data || data.success) {
+            if (!status || status.success) {
                 $error.empty();
 
-                if (data && data.message) {
-                    $hits.text(data.message);
+                if (status && status.message) {
+                    $hits.text(status.message);
                 } else $hits.empty();
             } else {
                 $hits.empty();
                 $error.html(
-                    alertTemplate({ error: data.error || i18n('search.query.error') })
+                    alertTemplate({ error: _.isString(status.error) ? status.error : i18n('search.query.error') })
                 )
             }
 
+            this.savedQueries[searchType].status = status || {};
             this.updateTypeCss();
         };
 
@@ -512,12 +530,6 @@ define([
                     } else {
                         this.select('querySelector').blur();
                     }
-                }
-            } else if (event.keyCode === 191 && !event.shiftKey /* FORWARD SLASH */) {
-                event.preventDefault();
-                event.stopPropagation();
-                if (event.type === 'keyup') {
-                    this.switchSearchType(this.otherSearchType);
                 }
             } else {
                 this.updateClearSearch();
@@ -597,11 +609,8 @@ define([
                     this.setQueryVal('');
                 }
                 this.filters = null;
-                this.updateQueryError();
+                this.updateQueryStatus();
                 this.triggerQueryUpdated();
-            } else {
-                this.savedQueries[this.otherSearchType].query = '';
-                this.savedQueries[this.otherSearchType].filters = [];
             }
         };
 
@@ -619,9 +628,8 @@ define([
         };
 
         this.onSwitchSearchType = function(event, data) {
-            if (data !== 'Visallo' && data !== 'Workspace' &&
-               !_.isObject(data) && !data.advancedSearch) {
-                throw new Error('Only Visallo/Workspace types supported');
+            if (data !== 'Visallo' && !_.isObject(data) && !data.advancedSearch) {
+                throw new Error('Only Visallo search type supported');
             }
             this.switchSearchType(data);
         };
@@ -671,44 +679,65 @@ define([
                 this.$node.find('.search-query-container').hide();
                 $container.show();
 
+                const searchTypePromise = [];
                 if (attach) {
+                    const resultsSelector = '.advanced-search-type-results.' + cls;
+                    const $resultsContainer = $(resultsSelector);
+
                     /**
                      * Responsible for displaying the interface for
                      * searching, and displaying the results.
                      *
                      * @typedef org.visallo.search.advanced~Component
-                     * @property {string} resultsSelector Css selector to
-                     * container that will hold results
+                     * @property {string} resultsSelector <span class="important">Deprecated:</span>
+                     * Use `renderResults` function instead.
+                     * Css selector of the container that will hold results
+                     * @property {object} [initialParameters] The search endpoint parameters
+                     * @property {function} renderResults takes a callback which is given the DOM node of the results container
+                     * @property {org.visallo.search.advanced~updateQueryStatus} updateQueryStatus Display error/success message
                      * @see module:components/List
                      * @listens org.visallo.search.advanced#savedQuerySelected
                      * @fires org.visallo.search.advanced#setCurrentSearchForSaving
                      * @example <caption>Rendering results</caption>
-                     * List.attachTo($(this.attr.resultsSelector), {
-                     *     items: results
+                     * this.props.renderResults((resultsNode) => {
+                     *     List.attachTo($(resultsNode), {
+                     *          items: results
                      * })
                      */
-                    Attacher()
+                    self.advancedSearchExtension = Attacher()
                         .path(path)
                         .node($container)
-                        .params({
-                            resultsSelector: '.search-pane .' + cls,
-                            resultsContainer: $('.search-pane .' + cls)
-                        })
+                        .params({ resultsSelector })
                         .behavior({
-                            setCurrentSearchForSaving: (evt, query) => {
-                                self.trigger($container, 'setCurrentSearchForSaving', query);
-                            }
-                        })
-                        .attach()
-                        .then(() => {
-                            self.trigger($container, 'searchtypeloaded', { type: newSearchType });
+                           setCurrentSearchForSaving: self.onSetCurrentSearchForSaving.bind(self),
+                           updateQueryStatus: function(attacher, status) { self.updateQueryStatus(status) },
+                           renderResults: function(attacher, renderFn) { renderFn($resultsContainer[0]); }
                         });
-                } else {
-                    self.trigger($container, 'searchtypeloaded', { type: newSearchType });
+
+                    searchTypePromise.push(self.advancedSearchExtension.attach())
                 }
 
-                self.currentSearchUrl = newSearchType.savedSearchUrl
-                self.currentSearchNode = $container;
+                Promise.resolve(searchTypePromise)
+                    .then(() => {
+                        self.trigger($container, 'searchtypeloaded', { type: newSearchType });
+
+                        self.currentSearch = null;
+                        self.currentSearchUrl = newSearchType.savedSearchUrl
+                        self.currentSearchNode = $container;
+
+                        self.$node.find('.advanced-search-type, .advanced-search-type-results').hide();
+                        $container.show().addClass('active');
+                        $container.siblings('.advanced-search-type').removeClass('active');
+
+                        if (!self.savedQueries[cls]) {
+                            self.savedQueries[cls] = {};
+                        }
+                        self.updateQueryStatus(self.savedQueries[cls].status);
+
+                        if (self.savedQueries[cls].status.success) {
+                            $container.siblings('.advanced-search-type-results.' + cls).show();
+                        }
+                    });
 
                 return;
             }
@@ -776,19 +805,24 @@ define([
         };
 
         this.updateQueryValue = function(newSearchType) {
-            var $query = this.select('querySelector'),
-                $hits = this.select('hitsSelector');
+            const $query = this.select('querySelector');
+            const $hits = this.select('hitsSelector');
+            const searchType = this.getSearchTypeOrId();
 
             if (this.searchType) {
                 this.savedQueries[this.searchType].query = $query.val();
-                this.savedQueries[this.searchType].hits = $hits.text().trim();
+                this.savedQueries[this.searchType].status.message = $hits.text().trim();
             }
             this.searchType = newSearchType;
-            this.otherSearchType = _.without(SEARCH_TYPES, this.searchType)[0];
 
-            $query.val(this.savedQueries[newSearchType].query);
-            if (this.savedQueries[newSearchType].hits) {
-                $hits.text(this.savedQueries[newSearchType].hits);
+            if (!this.savedQueries[searchType]) {
+                this.savedQueries[searchType] = { query: '', status: {}};
+            }
+
+            $query.val(this.savedQueries[searchType].query);
+
+            if (this.savedQueries[searchType].status.message) {
+                $hits.text(this.savedQueries[searchType].status.message);
             } else $hits.empty();
 
             this.updateClearSearch();
@@ -817,6 +851,15 @@ define([
         this.getSearchTypeNode = function() {
             return this.$node.find('.search-type-' + this.searchType.toLowerCase());
         };
+
+        this.getSearchTypeOrId = function() {
+            if (this.advancedActive) {
+                const classList = this.$node.find('.advanced-search-type.active').attr('class');
+                return classList.match(/id[0-9]+/)[0];
+            } else {
+                return 'Visallo';
+            }
+        }
 
         this.render = function() {
             var self = this,
