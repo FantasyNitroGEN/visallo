@@ -128,8 +128,15 @@ html.fullscreenDetails {
       }
     }
   }
-  .search-pane .content {
-    overflow: visible;
+  .search-pane {
+    .content {
+      overflow: visible;
+    }
+
+    > .content {
+      display: flex;
+      flex-direction: column
+    }
   }
 
   .search-pane,
