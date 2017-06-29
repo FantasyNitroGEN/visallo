@@ -667,6 +667,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 if (dependentPropertyIris != null) {
                     saveDependentProperties(vertexId, dependentPropertyIris);
                 }
+                if (possibleValues != null) {
+                    OntologyProperties.POSSIBLE_VALUES.updateProperty(elemCtx, JSONUtil.toJson(possibleValues), VISIBILITY.getVisibility());
+                }
                 if (intents != null) {
                     Metadata metadata = new Metadata();
                     for (String intent : intents) {

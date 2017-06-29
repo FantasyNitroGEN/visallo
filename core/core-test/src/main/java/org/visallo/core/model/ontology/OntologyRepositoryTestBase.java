@@ -134,6 +134,13 @@ public abstract class OntologyRepositoryTestBase extends VisalloInMemoryTestBase
         assertEquals("First Met", firstMetProperty.getDisplayName());
         assertEquals(PropertyType.DATE, firstMetProperty.getDataType());
 
+        OntologyProperty favColorProperty = getOntologyRepository().getPropertyByIRI(TEST_IRI + "#favoriteColor");
+        assertEquals("Favorite Color", favColorProperty.getDisplayName());
+        possibleValues = favColorProperty.getPossibleValues();
+        assertEquals(2, possibleValues.size());
+        assertEquals("red 1", possibleValues.get("Red"));
+        assertEquals("blue 2", possibleValues.get("Blue"));
+
         Relationship relationship = getOntologyRepository().getRelationshipByIRI(TEST_IRI + "#personKnowsPerson");
         assertTrue(relationship.getProperties()
                 .stream()
@@ -233,6 +240,13 @@ public abstract class OntologyRepositoryTestBase extends VisalloInMemoryTestBase
         OntologyProperty firstMetProperty = getOntologyRepository().getPropertyByIRI(TEST_IRI + "#firstMet");
         assertEquals("First Met", firstMetProperty.getDisplayName());
         assertEquals(PropertyType.DATE, firstMetProperty.getDataType());
+
+        OntologyProperty favColorProperty = getOntologyRepository().getPropertyByIRI(TEST_IRI + "#favoriteColor");
+        assertEquals("Favorite Color", favColorProperty.getDisplayName());
+        possibleValues = favColorProperty.getPossibleValues();
+        assertEquals(2, possibleValues.size());
+        assertEquals("red 1", possibleValues.get("Red"));
+        assertEquals("blue 2", possibleValues.get("Blue"));
 
         Relationship relationship = getOntologyRepository().getRelationshipByIRI(TEST_IRI + "#personKnowsPerson");
         assertTrue(relationship.getProperties()

@@ -59,6 +59,22 @@
         <visallo:updateable rdf:datatype="&xsd;boolean">true</visallo:updateable>
         <visallo:deleteable rdf:datatype="&xsd;boolean">true</visallo:deleteable>
     </owl:DatatypeProperty>
+
+
+    <!-- http://visallo.org/test#favoriteColor -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/test#favoriteColor">
+        <rdfs:label xml:lang="en">Favorite Color</rdfs:label>
+        <visallo:textIndexHints>EXACT_MATCH</visallo:textIndexHints>
+        <rdfs:domain rdf:resource="http://visallo.org/test#person"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <visallo:possibleValues xml:lang="en">
+        {
+            &quot;Red&quot;: &quot;red 1&quot;,
+            &quot;Blue&quot;: &quot;blue 2&quot;
+        }
+        </visallo:possibleValues>
+    </owl:DatatypeProperty>
 </rdf:RDF>
 
 
