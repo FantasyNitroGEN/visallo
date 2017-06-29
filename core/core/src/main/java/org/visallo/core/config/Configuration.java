@@ -20,6 +20,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -262,30 +263,13 @@ public class Configuration {
             propName = propName.substring(0, 1).toLowerCase() + propName.substring(1);
         }
 
-        String name = configurableAnnotation.name();
-        String defaultValue = configurableAnnotation.defaultValue();
-        if (name.equals(Configurable.DEFAULT_NAME)) {
-            name = propName;
-        }
-        String val;
-        if (config.containsKey(name)) {
-            val = config.get(name);
-        } else {
-            if (Configurable.DEFAULT_VALUE.equals(defaultValue)) {
-                if (configurableAnnotation.required()) {
-                    throw new VisalloException(String.format("Could not find property \"%s\" for \"%s\" and no default value was specified.", name, o.getClass().getName()));
-                } else {
-                    return;
-                }
+        setConfigurable(config, configurableAnnotation, propName, m.getParameterTypes()[0], false, convertUtilsBean, value -> {
+            try {
+                m.invoke(o, value);
+            } catch (Exception ex) {
+                throw new VisalloException("Could not set property " + m.getName() + " on " + o.getClass().getName());
             }
-            val = defaultValue;
-        }
-        try {
-            Object convertedValue = convertUtilsBean.convert(val, m.getParameterTypes()[0]);
-            m.invoke(o, convertedValue);
-        } catch (Exception ex) {
-            throw new VisalloException("Could not set property " + m.getName() + " on " + o.getClass().getName());
-        }
+        });
     }
 
     private static void setConfigurablesField(Object o, Field f, Map<String, String> config, ConvertUtilsBean convertUtilsBean) {
@@ -295,27 +279,55 @@ public class Configuration {
         }
 
         String propName = f.getName();
+
+        setConfigurable(config, configurableAnnotation, propName, f.getType(), true, convertUtilsBean, value -> {
+            try {
+                f.setAccessible(true);
+                f.set(o, value);
+            } catch (Exception ex) {
+                throw new VisalloException("Could not set property " + f.getName() + " on " + o.getClass().getName());
+            }
+        });
+    }
+
+    private static void setConfigurable(
+            Map<String, String> config,
+            Configurable configurableAnnotation,
+            String propName,
+            Class<?> propType,
+            boolean isField,
+            ConvertUtilsBean convertUtilsBean,
+            Consumer<Object> setFunction
+    ) {
         String name = configurableAnnotation.name();
         if (name.equals(Configurable.DEFAULT_NAME)) {
             name = propName;
         }
-        String defaultValue = configurableAnnotation.defaultValue();
+
+        if (Map.class.isAssignableFrom(propType)) {
+            SortedMap<String, Map<String, String>> values = getMultiValue(config.entrySet(), name);
+            setFunction.accept(values);
+            return;
+        }
+
         String val;
         if (config.containsKey(name)) {
             val = config.get(name);
         } else {
-            if (Configurable.DEFAULT_VALUE.equals(defaultValue)) {
-                return;
+            if (Configurable.DEFAULT_VALUE.equals(configurableAnnotation.defaultValue())) {
+                if (isField) {
+                    return; // fields always have a default value, we should use that value
+                }
+                if (configurableAnnotation.required()) {
+                    throw new VisalloException(String.format("Could not find property \"%s\" and no default value was specified.", name));
+                } else {
+                    return;
+                }
             }
-            val = defaultValue;
+            val = configurableAnnotation.defaultValue();
         }
-        try {
-            Object convertedValue = convertUtilsBean.convert(val, f.getType());
-            f.setAccessible(true);
-            f.set(o, convertedValue);
-        } catch (Exception ex) {
-            throw new VisalloException("Could not set property " + f.getName() + " on " + o.getClass().getName());
-        }
+        Object convertedValue = convertUtilsBean.convert(val, propType);
+        setFunction.accept(convertedValue);
     }
 
     public Map toMap() {

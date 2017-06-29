@@ -93,12 +93,20 @@ public class ConfigurationTest {
         configuration.setConfigurables(obj, new HashMap<String, String>() {{
             put("propWithDifferentNameDifferent", "propWithDifferentNameDifferentValue");
             put("propWithSetter", "propWithSetterValue");
+            put("map.0.a", "0a");
+            put("map.0.b", "0b");
+            put("map.1.a", "1a");
+            put("map.1.b", "1b");
         }});
 
         assertEquals("propWithCodeDefaultValue", obj.getPropWithCodeDefault());
         assertEquals("propWithAnnotationDefaultValue", obj.getPropWithAnnotationDefault());
         assertEquals("propWithDifferentNameDifferentValue", obj.getPropWithDifferentName());
         assertEquals("propWithSetterValue", obj.getPropWithSetter());
+        assertEquals("0a", obj.map.get("0").get("a"));
+        assertEquals("0b", obj.map.get("0").get("b"));
+        assertEquals("1a", obj.map.get("1").get("a"));
+        assertEquals("1b", obj.map.get("1").get("b"));
     }
 
     private static class SetConfigurablesTestClass {
@@ -112,6 +120,8 @@ public class ConfigurationTest {
         private String propWithDifferentName;
 
         private String propWithSetter;
+
+        private Map<String, Map<String, String>> map;
 
         public String getPropWithSetter() {
             return propWithSetter;
@@ -132,6 +142,11 @@ public class ConfigurationTest {
 
         public String getPropWithDifferentName() {
             return propWithDifferentName;
+        }
+
+        @Configurable
+        public void setMap(Map<String, Map<String, String>> map) {
+            this.map = map;
         }
     }
 }
